@@ -3,14 +3,14 @@ import Cookies from "js-cookie"
 import { removeTokensStorage } from "./auth/auth.helper"
 import { authService } from "./auth/auth.service"
 export const axiosClassic = axios.create({
-    baseURL: `http://localhost:4300/api`,
+    baseURL: `https://funapp.space/api`,
     headers: {
         "Content-Type": "application/json"
     }
 })
 
 const axiosInstance = axios.create({
-    baseURL: `http://localhost:4300/api`,
+    baseURL: `https://funapp.space/api`,
     headers: {
         "Content-Type": "application/json"
     }

@@ -1,13 +1,15 @@
+version: "3.8"
+
 services:
     frontend:
-        build: ./skladanclient
+        build: .
         ports:
             - "80:80"
         networks:
             - app-network
 
     backend:
-        build: ./skladan
+        build: ../skladan
         ports:
             - "4300:4300"
         environment:

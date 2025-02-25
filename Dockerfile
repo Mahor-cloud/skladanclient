@@ -19,8 +19,8 @@ RUN yarn build
 # Используем официальный образ Nginx
 FROM nginx:alpine
 
-# Копируем собранные файлы Vue.js в директорию Nginx
-COPY dist /usr/share/nginx/html
+# Копируем собранные файлы в Nginx
+COPY --from=0 /usr/src/app/dist /usr/share/nginx/html
 
 # Экспортируем порт 80
 EXPOSE 80

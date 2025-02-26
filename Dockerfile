@@ -26,7 +26,7 @@ COPY --from=builder /usr/src/app/dist /usr/share/nginx/html
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 
 # Экспортируем порт 80 и 443
-EXPOSE 80 443
+EXPOSE 80
 
 # Запускаем Nginx
 CMD ["nginx", "-g", "daemon off;"]

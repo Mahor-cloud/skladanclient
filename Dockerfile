@@ -1,5 +1,5 @@
 # Используем официальный образ Node.js
-FROM node:22
+FROM node:22 AS builder
 
 # Устанавливаем рабочую директорию
 WORKDIR /usr/src/app
@@ -16,14 +16,17 @@ COPY . .
 # Собираем проект
 RUN yarn build
 
-# Устанавливаем простой HTTP-сервер
-RUN yarn global add http-server
+# Используем официальный образ Nginx
+FROM nginx:alpine
 
-# Копируем собранные файлы в рабочую директорию
-COPY --from=0 /usr/src/app/dist /usr/src/app/dist
+# Копируем собранные файлы в Nginx
+COPY --from=builder /usr/src/app/dist /usr/share/nginx/html
+
+# Копируем конфигурационный файл Nginx
+COPY nginx.conf /etc/nginx/nginx.conf
 
 # Экспортируем порт 80
 EXPOSE 80
 
-# Запускаем сервер для обслуживания статического контента
-CMD ["http-server", "-p", "80", "/usr/src/app/dist"]
+# Запускаем Nginx
+CMD ["nginx", "-g", "daemon off;"]

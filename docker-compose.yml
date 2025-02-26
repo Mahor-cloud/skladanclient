@@ -1,21 +1,15 @@
-version: "3.8"
-
 services:
     frontend:
         build: .
-        labels:
-            - "traefik.enable=true"
-            - "traefik.http.routers.frontend.rule=Host(`funapp.space`)"
-            - "traefik.http.services.frontend.loadbalancer.server.port=80"
+        ports:
+            - "80:80"
         networks:
             - app-network
 
     backend:
         build: ../skladan
-        labels:
-            - "traefik.enable=true"
-            - "traefik.http.routers.backend.rule=Host(`funapp.space`) && PathPrefix(`/api`)"
-            - "traefik.http.services.backend.loadbalancer.server.port=4300"
+        ports:
+            - "4300:4300"
         environment:
             - NODE_ENV=${NODE_ENV}
             - MONGO_URI=${MONGO_URI}
@@ -33,20 +27,6 @@ services:
             - "27018:27017"
         volumes:
             - mongo-data:/data/db
-        networks:
-            - app-network
-
-    traefik:
-        image: traefik:v2.5
-        command:
-            - "--api.insecure=true"
-            - "--providers.docker=true"
-            - "--entrypoints.web.address=:80"
-        ports:
-            - "80:80"
-            - "8080:8080"
-        volumes:
-            - "/var/run/docker.sock:/var/run/docker.sock:ro"
         networks:
             - app-network
 

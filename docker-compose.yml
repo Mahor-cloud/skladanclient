@@ -1,12 +1,17 @@
 version: "3.8"
 
 services:
-    frontend:
-        build:
-            context: .
-            dockerfile: Dockerfile
+    web:
+        build: .
+        container_name: funapp
+        restart: always
         ports:
-            - "80:80"
-            - "443:443"
+            - "80:80" # Только HTTP, так как SSL обрабатывает Cloudflare
         volumes:
-            - ./dist:/usr/share/nginx/html
+            - ./nginx.conf:/etc/nginx/conf.d/default.conf
+        networks:
+            - funapp-network
+
+networks:
+    funapp-network:
+        driver: bridge

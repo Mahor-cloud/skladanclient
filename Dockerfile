@@ -16,17 +16,11 @@ COPY . .
 # Собираем проект
 RUN yarn build
 
-# Используем официальный образ Nginx
-FROM nginx:alpine
-
-# Копируем собранные файлы в Nginx
+# Копируем собранные файлы в рабочую директорию
 COPY --from=0 /usr/src/app/dist /usr/share/nginx/html
-
-# Копируем конфигурационный файл Nginx
-COPY nginx.conf /etc/nginx/nginx.conf
 
 # Экспортируем порт 80
 EXPOSE 80
 
-# Запускаем Nginx
-CMD ["nginx", "-g", "daemon off;"]
+# Запускаем сервер для обслуживания статического контента
+CMD ["http-server", "-p", "80", "/usr/share/nginx/html"]

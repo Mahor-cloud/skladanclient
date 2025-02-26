@@ -1,5 +1,5 @@
 # Используем официальный образ Node.js
-FROM node:14 AS builder
+FROM node:22 AS builder
 
 # Устанавливаем рабочую директорию
 WORKDIR /usr/src/app

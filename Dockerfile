@@ -8,13 +8,13 @@ WORKDIR /app
 COPY package*.json ./
 
 # Устанавливаем зависимости
-RUN npm install
+RUN yarn install
 
 # Копируем исходный код
 COPY . .
 
 # Собираем проект
-RUN npm run build
+RUN yarn build
 
 # Используем официальный образ Nginx для production
 FROM nginx:alpine AS production-stage

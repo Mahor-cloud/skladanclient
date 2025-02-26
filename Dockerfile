@@ -1,5 +1,5 @@
 # Используем официальный образ Node.js
-FROM node:22 AS builder
+FROM node:14 AS builder
 
 # Устанавливаем рабочую директорию
 WORKDIR /usr/src/app
@@ -8,18 +8,18 @@ WORKDIR /usr/src/app
 COPY package*.json ./
 
 # Устанавливаем зависимости
-RUN yarn install
+RUN npm install
 
 # Копируем остальные файлы
 COPY . .
 
-# Собираем проект
-RUN yarn build
+# Собираем приложение
+RUN npm run build
 
 # Используем официальный образ Nginx
 FROM nginx:alpine
 
-# Копируем собранные файлы в Nginx
+# Копируем собранные файлы Vue в директорию Nginx
 COPY --from=builder /usr/src/app/dist /usr/share/nginx/html
 
 # Копируем конфигурационный файл Nginx

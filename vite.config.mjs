@@ -43,7 +43,7 @@ export default defineConfig({
                 ]
             },
             workbox: {
-                importScripts: ["/public/service-worker.js"]
+                importScripts: ["/service-worker.js"]
             },
             devOptions: {
                 enabled: true

@@ -1,3 +1,5 @@
+version: "3.8"
+
 services:
     frontend:
         build:
@@ -5,5 +7,6 @@ services:
             dockerfile: Dockerfile
         ports:
             - "80:80"
+            - "443:443"
         volumes:
             - ./dist:/usr/share/nginx/html

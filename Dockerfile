@@ -16,17 +16,15 @@ COPY . .
 # Собираем приложение
 RUN yarn build
 
-# Используем официальный образ Nginx
-FROM nginx:alpine
+FROM nginx as production-stage
 
-# Копируем собранные файлы Vue в директорию Nginx
-COPY --from=builder /usr/src/app/dist /usr/share/nginx/html
+RUN mkdir /app
 
-# Устанавливаем права доступа для файлов
+COPY --from=builder /app/dist /app
+
 RUN chmod -R 755 /usr/share/nginx/html
 
-# Копируем конфигурационный файл Nginx
-COPY nginx.conf /etc/nginx/conf.d/default.conf
+COPY nginx.conf /etc/nginx/nginx.conf
 
 # Экспортируем порт 80
 EXPOSE 80

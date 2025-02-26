@@ -1,38 +1,9 @@
 services:
     frontend:
-        build: .
+        build:
+            context: .
+            dockerfile: Dockerfile
         ports:
             - "80:80"
-        networks:
-            - app-network
-
-    backend:
-        build: ../skladan
-        ports:
-            - "4300:4300"
-        environment:
-            - NODE_ENV=${NODE_ENV}
-            - MONGO_URI=${MONGO_URI}
-            - JWT_SECRET=${JWT_SECRET}
-            - VAPID_PUBLIC_KEY=${VAPID_PUBLIC_KEY}
-            - VAPID_PRIVATE_KEY=${VAPID_PRIVATE_KEY}
-        depends_on:
-            - mongo
-        networks:
-            - app-network
-
-    mongo:
-        image: mongo:latest
-        ports:
-            - "27018:27017"
         volumes:
-            - mongo-data:/data/db
-        networks:
-            - app-network
-
-volumes:
-    mongo-data:
-
-networks:
-    app-network:
-        driver: bridge
+            - ./dist:/usr/share/nginx/html

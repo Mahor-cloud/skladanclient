@@ -16,11 +16,10 @@ COPY . .
 # Собираем приложение
 RUN yarn build
 
+
 FROM nginx as production-stage
 
-RUN mkdir /app
-
-COPY --from=builder /app/dist /app
+COPY --from=builder /usr/src/app/dist /usr/share/nginx/html
 
 RUN chmod -R 755 /usr/share/nginx/html
 
@@ -31,3 +30,4 @@ EXPOSE 80
 
 # Запускаем Nginx
 CMD ["nginx", "-g", "daemon off;"]
+

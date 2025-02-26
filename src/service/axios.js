@@ -3,14 +3,14 @@ import Cookies from "js-cookie"
 import { removeTokensStorage } from "./auth/auth.helper"
 import { authService } from "./auth/auth.service"
 export const axiosClassic = axios.create({
-    baseURL: `http://188.235.146.152:4301/api`,
+    baseURL: `http://188.235.146.152:4300/api`,
     headers: {
         "Content-Type": "application/json"
     }
 })
 
 const axiosInstance = axios.create({
-    baseURL: `http://188.235.146.152:4301/api`,
+    baseURL: `http://188.235.146.152:4300/api`,
     headers: {
         "Content-Type": "application/json"
     }

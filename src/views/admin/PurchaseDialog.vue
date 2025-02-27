@@ -185,7 +185,8 @@ function formatCurrency(value) {
                             <span>{{ slotProps.data.buyQuantity }}</span>
                         </div>
                         <div v-else-if="!purchaseOrder.isCompleted" class="flex items-center">
-                            <InputNumber :disabled="!props.editable" v-model="slotProps.data.buyQuantity" :invalid="false" :useGrouping="false" :min="0" :inputStyle="inputStyleObject" size="small" />
+                            <input type="number" :disabled="!props.editable" v-model="slotProps.data.buyQuantity" :style="inputStyleObject" />
+                            <!-- <InputNumber  v-model="slotProps.data.buyQuantity" :invalid="false" :useGrouping="false" :min="0" :inputStyle="inputStyleObject" size="small" /> -->
                         </div>
                         <div v-if="!purchaseOrder.isCompleted && purchaseOrder.isPaid && slotProps.data.receivedQuantity < slotProps.data.buyQuantity" class="flex items-center">
                             <InputNumber

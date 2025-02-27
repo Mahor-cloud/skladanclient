@@ -1,4 +1,5 @@
 <script setup>
+import { authService } from "@/service/auth/auth.service"
 import axiosInstance from "@/service/axios"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/vue-query"
 import { onMounted, ref, watchEffect } from "vue"
@@ -134,6 +135,8 @@ function importDatabaseHandler(e) {
     const formData = new FormData()
     formData.append("file", file)
     importDatabase(formData)
+    authService.logout()
+    router.go("/auth/login")
 }
 
 const subscribeToPush = async () => {

@@ -89,7 +89,7 @@ function handleSubmit() {
             </div>
             <div class="flex flex-row gap-6">
                 <FloatLabel variant="on">
-                    <InputText :disabled="!props.editable" v-model="user.login" inputId="login" />
+                    <InputText :disabled="!props.editable" v-model.trim="user.login" inputId="login" />
                     <label for="login">Логин</label>
                 </FloatLabel>
                 <FloatLabel variant="on">

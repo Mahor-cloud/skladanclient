@@ -83,7 +83,7 @@ const saveProduct = () => {
             <div class="grid grid-cols-12 gap-4">
                 <div class="col-span-4">
                     <label for="price" class="block font-bold mb-3">Цена</label>
-                    <InputNumber id="price" :invalid="submitted && !product.price" v-model="product.price" mode="currency" currency="RUB" locale="ru-RU" fluid />
+                    <InputText type="number" id="price" :invalid="submitted && !product.price" v-model.number="product.price" fluid />
                     <small v-if="submitted && !product.price" class="text-red-500">Введите цену.</small>
                 </div>
                 <div class="col-span-6">
@@ -93,7 +93,7 @@ const saveProduct = () => {
                 </div>
                 <div class="col-span-2 justify-items-center">
                     <label for="quantity" class="block font-bold mb-3"><i class="pi pi-database"></i></label>
-                    <InputNumber id="quantity" inputClass="text-center" v-model="product.quantity" disabled fluid />
+                    <InputText type="number" id="quantity" inputClass="text-center" v-model.number="product.quantity" disabled fluid />
                 </div>
             </div>
         </div>

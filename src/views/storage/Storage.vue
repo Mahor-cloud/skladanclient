@@ -248,7 +248,7 @@ function hideBuyDialog() {
             <div class="col-span-6">
                 <label for="buyQuantity" class="block font-bold mb-3">{{ product.name }}</label>
                 <FloatLabel variant="on">
-                    <InputNumber style="font-size: 0.8rem" id="buyQuantity" v-model="product.buyQuantity" @input="(event) => (product.buyQuantity = event.value)" fluid :useGrouping="false" :min="0" />
+                    <InputText type="number" style="font-size: 0.8rem" id="buyQuantity" v-model="product.buyQuantity" @input="(event) => (product.buyQuantity = event.value)" fluid :useGrouping="false" :min="0" />
                     <label>{{ `В корзине ` }}</label>
                 </FloatLabel>
                 <small class="text-primary"> Доступно {{ product.quantity }}</small>

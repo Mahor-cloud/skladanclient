@@ -22,7 +22,7 @@ export default defineConfig({
                 name: "СкладАН PWA",
                 short_name: "Склад",
                 description: "Склад",
-                theme_color: "#ffffff",
+                theme_color: "#312f2f",
                 icons: icons,
                 display: "standalone",
                 screenshots: [
@@ -43,7 +43,31 @@ export default defineConfig({
                 ]
             },
             workbox: {
-                importScripts: ["/service-worker.js"]
+                importScripts: ["/service-worker.js"],
+                runtimeCaching: [
+                    {
+                        urlPattern: /\.(html|js)$/,
+                        handler: "NetworkFirst", // Всегда загружать HTML из сети
+                        options: {
+                            cacheName: "html-cache",
+                            expiration: {
+                                maxEntries: 30, // Максимум 10 HTML-файлов в кеше
+                                maxAgeSeconds: 60 * 60 * 24 // 1 день
+                            }
+                        }
+                    },
+                    {
+                        urlPattern: /\.(css|json|png|jpg|jpeg|svg|webp)$/,
+                        handler: "StaleWhileRevalidate", // Использовать кеш, но проверять обновления
+                        options: {
+                            cacheName: "static-assets",
+                            expiration: {
+                                maxEntries: 50, // Максимум 50 файлов в кеше
+                                maxAgeSeconds: 60 * 60 * 24 * 7 // 1 неделя
+                            }
+                        }
+                    }
+                ]
             },
             devOptions: {
                 enabled: true

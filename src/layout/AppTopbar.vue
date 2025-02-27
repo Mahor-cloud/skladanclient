@@ -157,10 +157,11 @@ function logoutHandler() {
             <Column header="К покупке" field="buyQuantity" :showFilterMatchModes="false" filterMenuStyle="{ width: '14rem' }" style="max-width: 1rem; padding: 0.3rem">
                 <template #body="slotProps">
                     <FloatLabel variant="on">
-                        <InputNumber
+                        <InputText
+                            type="number"
                             :invalid="slotProps.data.buyQuantity > slotProps.data.quantity"
                             style="font-size: 0.8rem"
-                            v-model="slotProps.data.buyQuantity"
+                            v-model.number="slotProps.data.buyQuantity"
                             @value-change="(event) => changeCartQuantity(slotProps.data._id, event)"
                             fluid
                             :useGrouping="false"

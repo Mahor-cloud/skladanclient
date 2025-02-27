@@ -193,8 +193,7 @@ function deleteInventorization() {
                                 <span>{{ slotProps.data.quantity }}</span>
                             </div>
                             <div v-if="!inventorization.isCompleted && props.editable" class="flex items-center">
-                                <input type="number" v-model="slotProps.data.newQuantity" />
-                                <!-- <InputNumber v-model="slotProps.data.newQuantity" :invalid="false" :useGrouping="false" :inputStyle="inputStyleObject" size="small" /> -->
+                                <InputText size="small" type="number" v-model.trim.number="slotProps.data.newQuantity" :inputStyle="inputStyleObject" />
                             </div>
                             <div class="flex items-center justify-center ml-8">
                                 <Tag

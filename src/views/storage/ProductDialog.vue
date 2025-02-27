@@ -83,7 +83,7 @@ const saveProduct = () => {
             <div class="grid grid-cols-12 gap-4">
                 <div class="col-span-4">
                     <label for="price" class="block font-bold mb-3">Цена</label>
-                    <InputText type="number" id="price" :invalid="submitted && !product.price" v-model.number="product.price" fluid />
+                    <InputText type="number" id="price" :invalid="submitted && !product.price" v-model.number="product.price" fluid :min="0" />
                     <small v-if="submitted && !product.price" class="text-red-500">Введите цену.</small>
                 </div>
                 <div class="col-span-6">

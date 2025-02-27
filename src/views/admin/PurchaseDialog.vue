@@ -189,7 +189,8 @@ function formatCurrency(value) {
                             <!-- <InputNumber  v-model="slotProps.data.buyQuantity" :invalid="false" :useGrouping="false" :min="0" :inputStyle="inputStyleObject" size="small" /> -->
                         </div>
                         <div v-if="!purchaseOrder.isCompleted && purchaseOrder.isPaid && slotProps.data.receivedQuantity < slotProps.data.buyQuantity" class="flex items-center">
-                            <InputNumber
+                            <input type="number" :disabled="!props.editable" v-model="slotProps.data.confirmedQuantity" :style="inputStyleObject" />
+                            <!-- <InputNumber
                                 :disabled="!props.editable"
                                 v-model="slotProps.data.confirmedQuantity"
                                 :invalid="false"
@@ -198,7 +199,7 @@ function formatCurrency(value) {
                                 :max="slotProps.data.buyQuantity"
                                 :inputStyle="inputStyleObject"
                                 size="small"
-                            />
+                            /> -->
                         </div>
                     </div>
                 </template>

@@ -157,7 +157,7 @@ function hideBuyDialog() {
                         <div class="text-surface-900 dark:text-surface-0 font-medium text-xl">{{ formatCurrency(totalAmount) }}</div>
                     </div>
                     <div class="flex items-center justify-center bg-orange-100 dark:bg-orange-400/10 rounded-border" style="width: 2.5rem; height: 2.5rem">
-                        <i class="pi text-orange-500 !text-xl">₽</i>
+                        <i class="pi text-cyan-700 !text-xl">₽</i>
                     </div>
                 </div>
                 <div class="block">

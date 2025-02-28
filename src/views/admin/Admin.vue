@@ -150,7 +150,7 @@ const subscribeToPush = async () => {
         })
         await axiosInstance.post("/change-history/subscribe", subscription)
         console.log(subscription)
-        window.location.reload()
+        // window.location.reload()
     } else {
         console.error("Push notifications are not supported in this browser.")
     }

@@ -206,6 +206,7 @@ function deleteInventorization() {
                                             } else {
                                                 slotProps.data.newQuantity = value
                                             }
+                                            e.target.value = slotProps.data.newQuantity
                                         }
                                     "
                                     :value="slotProps.data.newQuantity"

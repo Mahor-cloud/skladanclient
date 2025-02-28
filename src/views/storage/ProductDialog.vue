@@ -95,6 +95,7 @@ const saveProduct = () => {
                                 } else {
                                     product.price = value
                                 }
+                                e.target.value = product.price
                             }
                         "
                         id="price"

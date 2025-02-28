@@ -261,6 +261,7 @@ function hideBuyDialog() {
                             } else {
                                 product.buyQuantity = value
                             }
+                            e.target.value = product.buyQuantity
                         }
                     "
                     style="font-size: 0.8rem"

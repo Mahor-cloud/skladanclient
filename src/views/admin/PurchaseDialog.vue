@@ -197,6 +197,7 @@ function formatCurrency(value) {
                                         } else {
                                             slotProps.data.buyQuantity = value
                                         }
+                                        e.target.value = slotProps.data.buyQuantity
                                     }
                                 "
                                 :value="slotProps.data.buyQuantity"
@@ -220,6 +221,7 @@ function formatCurrency(value) {
                                         } else {
                                             slotProps.data.confirmedQuantity = value
                                         }
+                                        e.target.value = slotProps.data.confirmedQuantity
                                     }
                                 "
                                 :disabled="!props.editable"

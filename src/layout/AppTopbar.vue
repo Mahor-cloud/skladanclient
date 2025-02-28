@@ -175,6 +175,7 @@ function logoutHandler() {
                                     } else {
                                         slotProps.data.buyQuantity = value
                                     }
+                                    event = slotProps.data.buyQuantity
                                     changeCartQuantity(slotProps.data._id, event)
                                 }
                             "

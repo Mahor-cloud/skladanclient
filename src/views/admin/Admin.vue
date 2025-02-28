@@ -74,12 +74,17 @@ const { mutate: importDatabase } = useMutation({
         queryClient.refetchQueries()
     }
 })
+
 onMounted(async () => {
     if ("serviceWorker" in navigator && "PushManager" in window) {
-        const registration = await navigator.serviceWorker.ready
-        const subscription = await registration.pushManager.getSubscription()
-        console.log(subscription)
-        isSubscribed.value = !!subscription
+        try {
+            const registration = await navigator.serviceWorker.ready
+            const subscription = await registration.pushManager.getSubscription()
+            console.log(subscription)
+            isSubscribed.value = !!subscription // Обновляем состояние подписки
+        } catch (error) {
+            console.error("Error checking subscription:", error)
+        }
     }
 })
 
@@ -141,15 +146,21 @@ function importDatabaseHandler(e) {
 
 const subscribeToPush = async () => {
     if ("serviceWorker" in navigator && "PushManager" in window) {
-        const registration = await navigator.serviceWorker.ready
-        console.log("Service Worker registered:", registration)
-        const subscription = await registration.pushManager.subscribe({
-            userVisibleOnly: true,
-            applicationServerKey: urlBase64ToUint8Array("BCAa7eZ76DxCQkNtvjSDqkayT7cHm1EP_Z_FNhx7XWHiYUhgs3YtPA0Z68W8ZbzD3varTZYT_uN5FCP65_lE2Vg")
-        })
-        await axiosInstance.post("/change-history/subscribe", subscription)
-        console.log(subscription)
-        isSubscribed.value = true
+        try {
+            const registration = await navigator.serviceWorker.ready
+            console.log("Service Worker registered:", registration)
+
+            const subscription = await registration.pushManager.subscribe({
+                userVisibleOnly: true,
+                applicationServerKey: urlBase64ToUint8Array("BCAa7eZ76DxCQkNtvjSDqkayT7cHm1EP_Z_FNhx7XWHiYUhgs3YtPA0Z68W8ZbzD3varTZYT_uN5FCP65_lE2Vg")
+            })
+
+            await axiosInstance.post("/change-history/subscribe", subscription)
+            console.log(subscription)
+            isSubscribed.value = true // Обновляем состояние подписки
+        } catch (error) {
+            console.error("Error subscribing to push notifications:", error)
+        }
     } else {
         console.error("Push notifications are not supported in this browser.")
     }

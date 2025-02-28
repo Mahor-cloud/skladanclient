@@ -147,8 +147,24 @@ function formatCurrency(value) {
                             })
                         "
                     />
-                    <Button v-if="!order.isCompleted" severity="danger" size="small" variant="text" icon="pi pi-times" iconPos="right" label="Отменить заказ" @click="confirmDeleteOrderDialog = true" />
-                    <Button v-if="!order.confirmedPaid" size="small" :label="!order.isPaid ? 'Оплатить' : 'Оплачено'" icon="pi pi-check" severity="success" @click="payDialog = true" />
+                    <Button
+                        v-if="!order.isCompleted && (orderCreator || (user.isAdmin && user.role.permissions.includes('edit_orders')))"
+                        severity="danger"
+                        size="small"
+                        variant="text"
+                        icon="pi pi-times"
+                        iconPos="right"
+                        label="Отменить заказ"
+                        @click="confirmDeleteOrderDialog = true"
+                    />
+                    <Button
+                        v-if="!order.confirmedPaid && (orderCreator || (user.isAdmin && user.role.permissions.includes('approve-payment')))"
+                        size="small"
+                        :label="!order.isPaid ? 'Оплатить' : 'Оплачено'"
+                        icon="pi pi-check"
+                        severity="success"
+                        @click="payDialog = true"
+                    />
                     <Button
                         v-if="order.confirmedPaid && !order.isCompleted && (orderCreator || (user.isAdmin && user.role.permissions.includes('edit_orders')))"
                         size="small"

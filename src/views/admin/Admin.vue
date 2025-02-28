@@ -2,7 +2,7 @@
 import { authService } from "@/service/auth/auth.service"
 import axiosInstance from "@/service/axios"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/vue-query"
-import { onMounted, ref, watchEffect } from "vue"
+import { ref, watchEffect } from "vue"
 import RoleDialog from "./RoleDialog.vue"
 import UserDialog from "./UserDialog.vue"
 
@@ -50,6 +50,9 @@ const { mutate: updateMessages } = useMutation({
     onSuccess: (data) => {
         queryClient.setQueryData(["msgs"], data)
         queryClient.invalidateQueries({ queryKey: ["msgs"] })
+    },
+    onError: (error) => {
+        console.error("Error updating messages:", error)
     }
 })
 
@@ -72,19 +75,9 @@ const { mutate: importDatabase } = useMutation({
         }),
     onSuccess: () => {
         queryClient.refetchQueries()
-    }
-})
-
-onMounted(async () => {
-    if ("serviceWorker" in navigator && "PushManager" in window) {
-        try {
-            const registration = await navigator.serviceWorker.ready
-            const subscription = await registration.pushManager.getSubscription()
-            console.log(subscription)
-            isSubscribed.value = !!subscription // Обновляем состояние подписки
-        } catch (error) {
-            console.error("Error checking subscription:", error)
-        }
+    },
+    onError: (error) => {
+        console.error("Error importing database:", error)
     }
 })
 
@@ -115,6 +108,7 @@ function openUserDialog(id) {
     userDialog.value = true
     console.log(userId.value, userDialog.value)
 }
+
 async function exportDatabaseHandler() {
     enabledExportDatabase.value = true
     try {
@@ -157,7 +151,7 @@ const subscribeToPush = async () => {
 
             await axiosInstance.post("/change-history/subscribe", subscription)
             console.log(subscription)
-            isSubscribed.value = true // Обновляем состояние подписки
+            isSubscribed.value = true
         } catch (error) {
             console.error("Error subscribing to push notifications:", error)
         }

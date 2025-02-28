@@ -70,19 +70,4 @@ app.use(ConfirmationService)
 
 registerSW({ immediate: true })
 
-console.log(registerSW)
-
-registerSW({
-    immediate: true, // Немедленно проверить обновления
-    onNeedRefresh() {
-        // Показать уведомление о новом обновлении
-        if (confirm("Новая версия приложения доступна.")) {
-            window.location.reload()
-        }
-    },
-    onOfflineReady() {
-        console.log("Приложение готово для работы в оффлайн-режиме.")
-    }
-})
-
 app.mount("#app")

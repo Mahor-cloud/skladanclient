@@ -1,9 +1,13 @@
 <script setup>
 import { useRegisterSW } from "virtual:pwa-register/vue"
-import { computed, ref } from "vue"
+import { computed, onMounted, ref } from "vue"
 
 const { offlineReady, needRefresh, updateServiceWorker } = useRegisterSW()
 const visible = ref(false)
+
+onMounted(() => {
+    updateServiceWorker()
+})
 
 const close = async () => {
     offlineReady.value = false

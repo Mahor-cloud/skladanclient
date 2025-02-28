@@ -27,7 +27,7 @@ const isVisible = computed(() => {
 </script>
 
 <template>
-    <Dialog v-if="offlineReady || needRefresh" :visible="isVisible" :modal="true">
+    <Dialog v-if="offlineReady || needRefresh" :visible="isVisible" :modal="true" v-on:update:visible="close">
         <template #header>
             <div class="inline-flex items-center justify-center gap-2">
                 <span class="font-bold whitespace-nowrap">Необходимо обновить!</span>
@@ -35,7 +35,17 @@ const isVisible = computed(() => {
         </template>
         <template #footer>
             <Button label="Cancel" text severity="secondary" @click="close" autofocus />
-            <Button label="Обновить" severity="warn" @click="updateServiceWorker()" autofocus />
+            <Button
+                label="Обновить"
+                severity="warn"
+                @click="
+                    () => {
+                        updateServiceWorker()
+                        close()
+                    }
+                "
+                autofocus
+            />
         </template>
     </Dialog>
     <router-view />

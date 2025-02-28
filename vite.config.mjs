@@ -44,7 +44,7 @@ export default defineConfig({
             },
             workbox: {
                 cleanupOutdatedCaches: true,
-                importScripts: ["/service-worker.js", "./src/sw.ts"],
+                importScripts: ["/service-worker.js", "./service-worker2.js"],
                 runtimeCaching: [
                     {
                         urlPattern: /\.(json|html|htm|js|css)$/,
@@ -70,7 +70,6 @@ export default defineConfig({
                     }
                 ]
             },
-
             devOptions: {
                 enabled: true
             }
@@ -82,6 +81,18 @@ export default defineConfig({
     resolve: {
         alias: {
             "@": fileURLToPath(new URL("./src", import.meta.url))
+        }
+    },
+    build: {
+        outDir: "dist",
+        rollupOptions: {
+            input: {
+                main: "./index.html",
+                "service-worker2": "./src/service-worker2.ts"
+            },
+            output: {
+                entryFileNames: "[name].js"
+            }
         }
     }
 })

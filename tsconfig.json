@@ -9,11 +9,14 @@
         "resolveJsonModule": true,
         "esModuleInterop": true,
         "baseUrl": ".",
+        "forceConsistentCasingInFileNames": true,
+        "outDir": "./dist", // Выходная директория для скомпилированных файлов
+        "rootDir": "./src", // Исходная директория,
         "paths": {
             "/@/*": ["src/*"]
         },
         "lib": ["ESNext", "DOM", "WebWorker"]
     },
-    "include": ["src/**/*.ts", "src/**/*.d.ts", "src/**/*.tsx", "src/**/*.vue"],
+    "include": ["src/**/*.ts", "src/**/*.d.ts", "src/**/*.tsx", "src/**/*.vue", "public/sw.ts"],
     "exclude": ["dist", "node_modules", "test", "test.ts", "**/*.spec.ts", "**/*.worker.ts"]
 }

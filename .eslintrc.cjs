@@ -1,3 +1,5 @@
+const { default: plugin } = require("tailwindcss")
+
 /* eslint-env node */
 require("@rushstack/eslint-patch/modern-module-resolution")
 
@@ -6,7 +8,8 @@ module.exports = {
     env: {
         node: true
     },
-    extends: ["plugin:vue/vue3-essential", "eslint:recommended", "@vue/eslint-config-prettier"],
+    plugins: ["@typescript-eslint"],
+    extends: ["plugin:vue/vue3-essential", "eslint:recommended", "@vue/eslint-config-prettier", "plugin:@typescript-eslint/recommended"],
     parserOptions: {
         ecmaVersion: "latest"
     },

@@ -47,7 +47,7 @@ export default defineConfig({
                 importScripts: ["/service-worker.js"],
                 runtimeCaching: [
                     {
-                        urlPattern: /\.(json|html|js)$/,
+                        urlPattern: /\.(json|html|js|css)$/,
                         handler: "NetworkFirst", // Всегда загружать HTML из сети
                         options: {
                             cacheName: "html-cache",
@@ -58,12 +58,12 @@ export default defineConfig({
                         }
                     },
                     {
-                        urlPattern: /\.(css|png|jpg|jpeg|svg|webp)$/,
-                        handler: "StaleWhileRevalidate", // Использовать кеш, но проверять обновления
+                        urlPattern: /\.(png|jpg|jpeg|svg|webp)$/,
+                        handler: "CacheFirst",
                         options: {
                             cacheName: "static-assets",
                             expiration: {
-                                maxEntries: 50, // Максимум 50 файлов в кеше
+                                maxEntries: 100,
                                 maxAgeSeconds: 60 * 60 * 24 * 7 // 1 неделя
                             }
                         }

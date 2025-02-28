@@ -74,7 +74,7 @@ if ("serviceWorker" in navigator) {
             const newWorker = registration.installing
 
             newWorker.addEventListener("statechange", () => {
-                if (newWorker.state === "installed") {
+                if (newWorker.state === "installed" && navigator.serviceWorker.controller) {
                     newWorker.postMessage("skipWaiting")
                 }
             })
@@ -82,6 +82,6 @@ if ("serviceWorker" in navigator) {
     })
 
     navigator.serviceWorker.addEventListener("controllerchange", () => {
-        window.location.reload()
+        window.location.reload() // Перезагрузить страницу после обновления Service Worker
     })
 }

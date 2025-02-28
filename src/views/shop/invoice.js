@@ -1,28 +1,23 @@
-import fontkit from "@pdf-lib/fontkit" // Импортируем fontkit
+import fontkit from "@pdf-lib/fontkit"
 import { PDFDocument, rgb } from "pdf-lib"
 
-// Загрузи шрифт (например, Arial)
 async function loadFont() {
-    const response = await fetch("/fonts/time-roman.ttf") // Укажи путь к шрифту
+    const response = await fetch("/fonts/time-roman.ttf")
     const fontBytes = await response.arrayBuffer()
     return fontBytes
 }
 
 export async function generateInvoice(order) {
-    // Создаём новый PDF документ
     const pdfDoc = await PDFDocument.create()
-
-    // Регистрируем fontkit
     pdfDoc.registerFontkit(fontkit)
 
-    const page = pdfDoc.addPage()
+    const page = pdfDoc.addPage([595.28, 841.89]) // A4 размер
     const { width, height } = page.getSize()
 
-    // Загружаем кастомный шрифт
     const fontBytes = await loadFont()
     const customFont = await pdfDoc.embedFont(fontBytes)
 
-    // Добавляем заголовок
+    // Заголовок
     page.drawText(`Расходная накладная № ${order.orderNumber} от ${order.orderDate}`, {
         x: 50,
         y: height - 50,
@@ -31,7 +26,7 @@ export async function generateInvoice(order) {
         color: rgb(0, 0, 0)
     })
 
-    // Добавляем информацию о поставщике и покупателе
+    // Информация о поставщике и покупателе
     let y = height - 100
     page.drawText(`Поставщик: Литературный подкомитет АН г.Саратов`, {
         x: 50,
@@ -57,7 +52,7 @@ export async function generateInvoice(order) {
         color: rgb(0, 0, 0)
     })
 
-    // Добавляем таблицу
+    // Таблица
     y -= 40
     const tableHeaders = ["№", "Наименование", "Цена", "Кол-во", "Сумма"]
     const columnWidths = [50, 300, 100, 80, 100]
@@ -91,7 +86,7 @@ export async function generateInvoice(order) {
 
     // Итоговая сумма
     y -= 40
-    page.drawText(`Итого: ${order.totalPrice}`, {
+    page.drawText(`Итого: ${order.totalPrice.toFixed(2)} ₽`, {
         x: width - 200,
         y,
         size: 14,
@@ -99,11 +94,9 @@ export async function generateInvoice(order) {
         color: rgb(0, 0, 0)
     })
 
-    // Сохраняем PDF
+    // Сохранение и скачивание PDF
     const pdfBytes = await pdfDoc.save()
     const pdfBlob = new Blob([pdfBytes], { type: "application/pdf" })
-
-    // Скачиваем PDF
     const url = window.URL.createObjectURL(pdfBlob)
     const a = document.createElement("a")
     a.href = url

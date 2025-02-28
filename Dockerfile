@@ -13,6 +13,9 @@ RUN yarn install
 # Копируем исходный код
 COPY . .
 
+# Удаляем папки dist и .vite (если они существуют)
+RUN rm -rf dist .vite
+
 # Собираем проект
 RUN yarn build
 

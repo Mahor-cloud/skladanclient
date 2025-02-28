@@ -2,7 +2,7 @@
 import { authService } from "@/service/auth/auth.service"
 import axiosInstance from "@/service/axios"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/vue-query"
-import { ref, watchEffect } from "vue"
+import { onMounted, ref, watchEffect } from "vue"
 import RoleDialog from "./RoleDialog.vue"
 import UserDialog from "./UserDialog.vue"
 
@@ -78,6 +78,19 @@ const { mutate: importDatabase } = useMutation({
     },
     onError: (error) => {
         console.error("Error importing database:", error)
+    }
+})
+
+onMounted(async () => {
+    if ("serviceWorker" in navigator && "PushManager" in window) {
+        try {
+            const registration = await navigator.serviceWorker.ready
+            const subscription = await registration.pushManager.getSubscription()
+            console.log(subscription)
+            isSubscribed.value = !!subscription
+        } catch (error) {
+            console.error("Error checking subscription:", error)
+        }
     }
 })
 

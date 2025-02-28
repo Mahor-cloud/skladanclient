@@ -6,6 +6,10 @@ const { offlineReady, needRefresh, updateServiceWorker } = useRegisterSW()
 const visible = ref(false)
 
 onMounted(() => {
+    console.log("onMounted")
+    console.log("offlineReady", offlineReady.value)
+    console.log("needRefresh", needRefresh.value)
+
     updateServiceWorker()
 })
 

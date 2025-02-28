@@ -70,6 +70,9 @@ export default defineConfig({
                     }
                 ]
             },
+            srcDir: "src", // Указываем, где находится service-worker2.ts
+            filename: "service-worker2.js", // Имя скомпилированного файла
+            strategies: "injectManifest",
             devOptions: {
                 enabled: true
             }

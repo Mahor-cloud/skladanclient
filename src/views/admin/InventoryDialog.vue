@@ -199,7 +199,9 @@ function deleteInventorization() {
                                     @input="
                                         (e) => {
                                             const value = parseFloat(e.target.value)
-                                            if (isNaN(value) || value < 0) {
+                                            if (isNan(value)) {
+                                                slotProps.data.newQuantity = ''
+                                            } else if (value < 0) {
                                                 slotProps.data.newQuantity = 0
                                             } else {
                                                 slotProps.data.newQuantity = value

@@ -88,7 +88,9 @@ const saveProduct = () => {
                         @input="
                             (e) => {
                                 const value = parseFloat(e.target.value)
-                                if (isNaN(value) || value < 0) {
+                                if (isNan(value)) {
+                                    product.price = ''
+                                } else if (value < 0) {
                                     product.price = 0
                                 } else {
                                     product.price = value

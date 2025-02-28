@@ -130,7 +130,7 @@ function formatCurrency(value) {
                     <b>{{ footerMessage }}</b>
                 </p>
 
-                <div v-if="orderCreator || (user.isAdmin && user.role.permissions.includes('edit_orders'))" class="flex justify-end gap-4 my-3">
+                <div v-if="orderCreator || user.isAdmin" class="flex justify-end gap-4 my-3">
                     <Button
                         severity="secondary"
                         class="mr-auto"
@@ -158,7 +158,7 @@ function formatCurrency(value) {
                         @click="confirmDeleteOrderDialog = true"
                     />
                     <Button
-                        v-if="!order.confirmedPaid && (orderCreator || (user.isAdmin && user.role.permissions.includes('approve-payment')))"
+                        v-if="!order.confirmedPaid && (orderCreator || (user.isAdmin && user.role?.permissions?.includes('approve-payment')))"
                         size="small"
                         :label="!order.isPaid ? 'Оплатить' : 'Оплачено'"
                         icon="pi pi-check"

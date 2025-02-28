@@ -132,7 +132,7 @@ export async function generateInvoice(order) {
 
     // Итоговая сумма
     y -= 40
-    page.drawText(`${order.totalPrice}`, {
+    page.drawText(`${order.totalPrice} Руб.`, {
         x: width - 200,
         y,
         size: 14,

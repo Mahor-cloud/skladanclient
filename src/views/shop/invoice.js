@@ -18,7 +18,7 @@ export async function generateInvoice(order) {
     const customFont = await pdfDoc.embedFont(fontBytes)
 
     // Заголовок
-    page.drawText(`Расходная накладная № ${order.orderNumber} от ${order.orderDate}`, {
+    page.drawText(`Расходная накладная. Номер ${order.orderNumber} от ${order.orderDate}`, {
         x: 50,
         y: height - 50,
         size: 24,
@@ -54,8 +54,8 @@ export async function generateInvoice(order) {
 
     // Таблица
     y -= 40
-    const tableHeaders = ["№", "Наименование", "Цена", "Кол-во", "Сумма"]
-    const columnWidths = [50, 300, 100, 80, 100]
+    const columnWidths = [40, 335, 40, 40, 40]
+    const tableHeaders = ["Номер", "Наименование", "Цена", "Кол-во", "Сумма"]
     const rowHeight = 20
 
     // Заголовки таблицы
@@ -67,6 +67,13 @@ export async function generateInvoice(order) {
             font: customFont,
             color: rgb(0, 0, 0)
         })
+    })
+
+    page.drawLine({
+        start: { x: 50, y: y - 5 },
+        end: { x: width - 50, y: y - 5 },
+        thickness: 1,
+        color: rgb(0, 0, 0)
     })
 
     // Строки таблицы
@@ -82,6 +89,29 @@ export async function generateInvoice(order) {
                 color: rgb(0, 0, 0)
             })
         })
+        page.drawLine({
+            start: { x: 50, y: y - 5 },
+            end: { x: width - 50, y: y - 5 },
+            thickness: 1,
+            color: rgb(0, 0, 0)
+        })
+    })
+
+    let x = 50
+    columnWidths.forEach((width, index) => {
+        page.drawLine({
+            start: { x, y: height - 145 },
+            end: { x, y: y - 5 },
+            thickness: 1,
+            color: rgb(0, 0, 0)
+        })
+        x += width
+    })
+    page.drawLine({
+        start: { x, y: height - 145 },
+        end: { x, y: y - 5 },
+        thickness: 1,
+        color: rgb(0, 0, 0)
     })
 
     // Итоговая сумма

@@ -185,10 +185,44 @@ function formatCurrency(value) {
                             <span>{{ slotProps.data.buyQuantity }}</span>
                         </div>
                         <div v-else-if="!purchaseOrder.isCompleted" class="flex items-center">
-                            <InputText v-model.number="slotProps.data.buyQuantity" :min="0" :inputStyle="inputStyleObject" size="small" />
+                            <InputText
+                                type="number"
+                                @input="
+                                    (e) => {
+                                        const value = parseFloat(e.target.value)
+                                        if (isNaN(value) || value < 0) {
+                                            slotProps.data.buyQuantity = 0
+                                        } else {
+                                            slotProps.data.buyQuantity = value
+                                        }
+                                    }
+                                "
+                                :value="slotProps.data.buyQuantity"
+                                :style="inputStyleObject"
+                                size="small"
+                                i
+                            />
                         </div>
                         <div v-if="!purchaseOrder.isCompleted && purchaseOrder.isPaid && slotProps.data.receivedQuantity < slotProps.data.buyQuantity" class="flex items-center">
-                            <InputText type="number" :disabled="!props.editable" v-model.number="slotProps.data.confirmedQuantity" :min="slotProps.data.receivedQuantity" :max="slotProps.data.buyQuantity" :inputStyle="inputStyleObject" size="small" />
+                            <InputText
+                                type="number"
+                                @input="
+                                    (e) => {
+                                        const value = parseFloat(e.target.value)
+                                        if (isNaN(value) || value < slotProps.data.receivedQuantity) {
+                                            slotProps.data.confirmedQuantity = slotProps.data.receivedQuantity
+                                        } else if (value > slotProps.data.buyQuantity) {
+                                            slotProps.data.confirmedQuantity = slotProps.data.buyQuantity
+                                        } else {
+                                            slotProps.data.confirmedQuantity = value
+                                        }
+                                    }
+                                "
+                                :disabled="!props.editable"
+                                :value="slotProps.data.confirmedQuantity"
+                                :style="inputStyleObject"
+                                size="small"
+                            />
                         </div>
                     </div>
                 </template>

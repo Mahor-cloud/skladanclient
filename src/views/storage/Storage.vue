@@ -247,12 +247,29 @@ function hideBuyDialog() {
         <Dialog v-model:visible="buyProductDialog" :style="{ width: '350px' }" header="Добавить в корзину?" :modal="true">
             <div class="col-span-6">
                 <label for="buyQuantity" class="block font-bold mb-3">{{ product.name }}</label>
-                <FloatLabel variant="on">
-                    <InputText type="number" style="font-size: 0.8rem" id="buyQuantity" v-model="product.buyQuantity" @input="(event) => (product.buyQuantity = event.value)" fluid :useGrouping="false" :min="0" />
-                    <label>{{ `В корзине ` }}</label>
-                </FloatLabel>
-                <small class="text-primary"> Доступно {{ product.quantity }}</small>
+                <InputText
+                    type="number"
+                    @input="
+                        (e) => {
+                            const value = parseFloat(e.target.value)
+                            if (isNaN(value) || value < 0) {
+                                product.buyQuantity = 0
+                            } else if (value > product.quantity) {
+                                product.buyQuantity = product.quantity
+                            } else {
+                                product.buyQuantity = value
+                            }
+                        }
+                    "
+                    style="font-size: 0.8rem"
+                    id="buyQuantity"
+                    :value="product.buyQuantity"
+                    fluid
+                    :useGrouping="false"
+                    :min="0"
+                />
                 <small v-if="buySubmitted" class="text-red-500">{{ `Доступно к покупке  ${product.quantity}` }}</small>
+                <small v-else class="text-primary"> Доступно {{ product.quantity }}</small>
             </div>
             <template #footer>
                 <Button label="No" icon="pi pi-times" text @click="hideBuyDialog" />

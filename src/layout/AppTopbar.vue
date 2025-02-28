@@ -21,13 +21,13 @@ const logoutDialog = ref(false)
 
 const totalAmount = computed({
     get() {
-        return cart.value.reduce((acc, product) => acc + product.buyQuantity, 0)
+        return cart.value.reduce((acc, product) => acc + Number(product.buyQuantity), 0)
     }
 })
 
 const { data: inCart, isSuccess: isCartSuccess } = useQuery({
     queryKey: ["cartAmount"],
-    queryFn: () => Object.values(JSON.parse(localStorage.getItem("cart") || "0")).reduce((acc, quantity) => acc + quantity, 0) || 0,
+    queryFn: () => Object.values(JSON.parse(localStorage.getItem("cart") || "0")).reduce((acc, quantity) => acc + Number(quantity), 0) || 0,
     staleTime: 60000,
     refetchInterval: 60000
 })
@@ -60,7 +60,7 @@ function openCart() {
     const cartData = JSON.parse(localStorage.getItem("cart")) || {}
     cart.value = Object.entries(cartData).map(([id, buyQuantity]) => {
         const product = { ...products.value.find((product) => product._id === id) }
-        product.buyQuantity = buyQuantity
+        product.buyQuantity = Number(buyQuantity)
         if (product.buyQuantity > product.quantity) {
             errorQuantity = true
         }
@@ -159,14 +159,24 @@ function logoutHandler() {
                     <FloatLabel variant="on">
                         <InputText
                             type="number"
+                            v-model.number="slotProps.data.buyQuantity"
                             :invalid="slotProps.data.buyQuantity > slotProps.data.quantity"
                             style="font-size: 0.8rem"
-                            v-model.number="slotProps.data.buyQuantity"
-                            @value-change="(event) => changeCartQuantity(slotProps.data._id, event)"
+                            @value-change="
+                                (event) => {
+                                    const value = parseFloat(event)
+                                    if (isNaN(value) || value < 1) {
+                                        slotProps.data.buyQuantity = 1
+                                    } else if (value > slotProps.data.quantity) {
+                                        console.log('test')
+                                        slotProps.data.buyQuantity = slotProps.data.quantity
+                                    } else {
+                                        slotProps.data.buyQuantity = value
+                                    }
+                                    changeCartQuantity(slotProps.data._id, event)
+                                }
+                            "
                             fluid
-                            :useGrouping="false"
-                            :min="1"
-                            :max="slotProps.data.quantity"
                         />
                         <label>{{ `Доступно  ${slotProps.data.quantity}` }}</label>
                     </FloatLabel>

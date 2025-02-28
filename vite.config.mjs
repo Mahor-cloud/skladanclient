@@ -87,7 +87,7 @@ export default defineConfig({
         outDir: "dist",
         rollupOptions: {
             input: {
-                app: "./index.html",
+                appMain: "./index.html",
                 "service-worker2": "./src/service-worker2.ts"
             },
             output: {

@@ -68,6 +68,10 @@ app.use(VueQueryPlugin)
 app.use(ToastService)
 app.use(ConfirmationService)
 
+registerSW({ immediate: true })
+
+console.log(registerSW)
+
 registerSW({
     immediate: true, // Немедленно проверить обновления
     onNeedRefresh() {
@@ -80,5 +84,23 @@ registerSW({
         console.log("Приложение готово для работы в оффлайн-режиме.")
     }
 })
+
+if ("serviceWorker" in navigator) {
+    navigator.serviceWorker.register("/sw.js").then((registration) => {
+        registration.addEventListener("updatefound", () => {
+            const newWorker = registration.installing
+
+            newWorker.addEventListener("statechange", () => {
+                if (newWorker.state === "installed" && navigator.serviceWorker.controller) {
+                    newWorker.postMessage("skipWaiting")
+                }
+            })
+        })
+    })
+
+    navigator.serviceWorker.addEventListener("controllerchange", () => {
+        window.location.reload() // Перезагрузить страницу после обновления Service Worker
+    })
+}
 
 app.mount("#app")

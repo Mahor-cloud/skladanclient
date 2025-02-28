@@ -46,8 +46,8 @@ export default defineConfig({
                 importScripts: ["/service-worker.js"],
                 runtimeCaching: [
                     {
-                        urlPattern: /\.(json|html|js|css)$/,
-                        handler: "NetworkFirst", // Всегда загружать HTML из сети
+                        urlPattern: /\.(json|html|htm|js|css)$/,
+                        handler: "NetworkOnly", // Всегда загружать HTML из сети
                         options: {
                             cacheName: "html-cache",
                             expiration: {

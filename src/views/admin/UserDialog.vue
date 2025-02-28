@@ -124,9 +124,9 @@ function handleSubmit() {
             <span>Вы уверенны что хотите поменять пароль?</span>
         </div>
         <template #footer>
-            <Button label="No" icon="pi pi-times" text @click="passwordChangedDialog = false" />
+            <Button label="Нет" icon="pi pi-times" text @click="passwordChangedDialog = false" />
             <Button
-                label="Yes"
+                label="Да"
                 icon="pi pi-check"
                 @click="
                     () => {

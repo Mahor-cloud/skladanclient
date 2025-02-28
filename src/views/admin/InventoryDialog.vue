@@ -250,8 +250,8 @@ function deleteInventorization() {
             <span>Вы уверенны что хотите удалить текущую <b> инвентаризацию </b>?</span>
         </div>
         <template #footer>
-            <Button label="No" icon="pi pi-times" text @click="deleteInventorizationDialog = false" />
-            <Button v-if="props.editable" label="Yes" icon="pi pi-check" @click="deleteInventorization" />
+            <Button label="Нет" icon="pi pi-times" text @click="deleteInventorizationDialog = false" />
+            <Button v-if="props.editable" label="Да" icon="pi pi-check" @click="deleteInventorization" />
         </template>
     </Dialog>
 
@@ -261,8 +261,8 @@ function deleteInventorization() {
             <span>Вы уверенны что хотите завершить текущую <b> инвентаризацию </b>?</span>
         </div>
         <template #footer>
-            <Button label="No" icon="pi pi-times" text @click="saveInventorizationDialog = false" />
-            <Button v-if="props.editable" label="Yes" icon="pi pi-check" @click="saveInventorization(true)" />
+            <Button label="Нет" icon="pi pi-times" text @click="saveInventorizationDialog = false" />
+            <Button v-if="props.editable" label="Да" icon="pi pi-check" @click="saveInventorization(true)" />
         </template>
     </Dialog>
 </template>

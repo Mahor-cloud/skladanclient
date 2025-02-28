@@ -129,8 +129,8 @@ const saveProduct = () => {
             >
         </div>
         <template #footer>
-            <Button label="No" icon="pi pi-times" text @click="deleteProductDialog = false" />
-            <Button label="Yes" icon="pi pi-check" @click="deleteProduct(props.product)" />
+            <Button label="Нет" icon="pi pi-times" text @click="deleteProductDialog = false" />
+            <Button label="Да" icon="pi pi-check" @click="deleteProduct(props.product)" />
         </template>
     </Dialog>
 </template>

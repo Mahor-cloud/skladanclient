@@ -205,8 +205,8 @@ function logoutHandler() {
             Вы уверенны что хотите оформить заказ ?
         </div>
         <template #footer>
-            <Button label="No" icon="pi pi-times" text @click="confirmBuyDialog = false" />
-            <Button label="Yes" icon="pi pi-check" @click="createOrder" />
+            <Button label="Нет" icon="pi pi-times" text @click="confirmBuyDialog = false" />
+            <Button label="Да" icon="pi pi-check" @click="createOrder" />
         </template>
     </Dialog>
     <Dialog v-model:visible="logoutDialog" :style="{ width: '450px' }" header="Подтвердите" :modal="true">
@@ -215,8 +215,8 @@ function logoutHandler() {
             Вы уверенны что хотите выйти из аккаунта ?
         </div>
         <template #footer>
-            <Button label="No" icon="pi pi-times" text @click="logoutDialog = false" />
-            <Button label="Yes" icon="pi pi-check" @click="logoutHandler" />
+            <Button label="Нет" icon="pi pi-times" text @click="logoutDialog = false" />
+            <Button label="Да" icon="pi pi-check" @click="logoutHandler" />
         </template>
     </Dialog>
 </template>

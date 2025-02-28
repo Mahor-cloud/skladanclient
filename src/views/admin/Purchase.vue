@@ -132,8 +132,8 @@ function hidePurchaseOrderDialog() {
             <span>Вы уверенны что хотите начать закупку?</span>
         </div>
         <template #footer>
-            <Button label="No" icon="pi pi-times" text @click="confirmCreatePurchaseOrderDialog = false" />
-            <Button v-if="user.role?.permissions?.includes('create_purchases')" label="Yes" icon="pi pi-check" @click="createPurchaseOrder()" />
+            <Button label="Нет" icon="pi pi-times" text @click="confirmCreatePurchaseOrderDialog = false" />
+            <Button v-if="user.role?.permissions?.includes('create_purchases')" label="Да" icon="pi pi-check" @click="createPurchaseOrder()" />
         </template>
     </Dialog>
 

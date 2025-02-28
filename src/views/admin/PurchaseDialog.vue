@@ -254,8 +254,8 @@ function formatCurrency(value) {
             <span>Вы уверенны что хотите отменить текущий заказ?</span>
         </div>
         <template #footer>
-            <Button label="Закрыть" severity="secondary" icon="pi pi-times" text @click="confirmDeleteDialog = false" />
-            <Button v-if="props.editable" severity="danger" label="Yes" icon="pi pi-check" @click="deletePurchaseOrder()" />
+            <Button label="Нет" severity="secondary" icon="pi pi-times" text @click="confirmDeleteDialog = false" />
+            <Button v-if="props.editable" severity="danger" label="Да" icon="pi pi-check" @click="deletePurchaseOrder()" />
         </template>
     </Dialog>
 

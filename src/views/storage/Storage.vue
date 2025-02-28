@@ -272,8 +272,8 @@ function hideBuyDialog() {
                 <small v-else class="text-primary"> Доступно {{ product.quantity }}</small>
             </div>
             <template #footer>
-                <Button label="No" icon="pi pi-times" text @click="hideBuyDialog" />
-                <Button label="Yes" :disabled="product.buyQuantity == 0 || !product.buyQuantity" icon="pi pi-check" @click="buyProduct" />
+                <Button label="Нет" icon="pi pi-times" text @click="hideBuyDialog" />
+                <Button label="Да" :disabled="product.buyQuantity == 0 || !product.buyQuantity" icon="pi pi-check" @click="buyProduct" />
             </template>
         </Dialog>
     </div>

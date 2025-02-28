@@ -94,8 +94,8 @@ function hideInventoryDialog() {
                 <span>Вы уверенны что хотите начать инвентаризацию?</span>
             </div>
             <template #footer>
-                <Button label="No" icon="pi pi-times" text @click="newInventorizationDialog = false" />
-                <Button label="Yes" icon="pi pi-check" @click="createInventorization()" />
+                <Button label="Нет" icon="pi pi-times" text @click="newInventorizationDialog = false" />
+                <Button label="Да" icon="pi pi-check" @click="createInventorization()" />
             </template>
         </Dialog>
 

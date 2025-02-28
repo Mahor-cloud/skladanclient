@@ -43,21 +43,22 @@ export default defineConfig({
                 ]
             },
             workbox: {
+                cacheId: "skladan-pwa-v1.0.2",
                 importScripts: ["/service-worker.js"],
                 runtimeCaching: [
                     {
-                        urlPattern: /\.(html|js)$/,
+                        urlPattern: /\.(json|html|js)$/,
                         handler: "NetworkFirst", // Всегда загружать HTML из сети
                         options: {
                             cacheName: "html-cache",
                             expiration: {
-                                maxEntries: 30, // Максимум 10 HTML-файлов в кеше
+                                maxEntries: 30,
                                 maxAgeSeconds: 60 * 60 * 24 // 1 день
                             }
                         }
                     },
                     {
-                        urlPattern: /\.(css|json|png|jpg|jpeg|svg|webp)$/,
+                        urlPattern: /\.(css|png|jpg|jpeg|svg|webp)$/,
                         handler: "StaleWhileRevalidate", // Использовать кеш, но проверять обновления
                         options: {
                             cacheName: "static-assets",
@@ -67,8 +68,10 @@ export default defineConfig({
                             }
                         }
                     }
-                ]
+                ],
+                cleanupOutdatedCaches: true
             },
+
             devOptions: {
                 enabled: true
             }

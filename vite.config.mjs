@@ -42,7 +42,7 @@ export default defineConfig({
                 ]
             },
             workbox: {
-                cacheId: "skladan-pwa-v1.0.2",
+                cacheId: "skladan-pwa-v1.0.4",
                 importScripts: ["/service-worker.js"],
                 runtimeCaching: [
                     {
@@ -52,7 +52,7 @@ export default defineConfig({
                             cacheName: "html-cache",
                             expiration: {
                                 maxEntries: 30,
-                                maxAgeSeconds: 60 * 60 * 24 // 1 день
+                                maxAgeSeconds: 60 * 60 * 2 // 2 часа
                             }
                         }
                     },

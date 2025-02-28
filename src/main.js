@@ -72,6 +72,7 @@ registerSW({
     immediate: true, // Немедленно проверить обновления
     onNeedRefresh() {
         // Показать уведомление о новом обновлении
+        confirm("Тест обновления приложения. Обновить страницу?")
         window.location.reload()
     },
     onOfflineReady() {

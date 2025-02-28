@@ -1,8 +1,9 @@
+import fontkit from "fontkit" // Импортируем fontkit
 import { PDFDocument, rgb } from "pdf-lib"
 
 // Загрузи шрифт (например, Arial)
 async function loadFont() {
-    const response = await fetch("/fonts/time-roman.ttf")
+    const response = await fetch("/fonts/time-roman.ttf") // Укажи путь к шрифту
     const fontBytes = await response.arrayBuffer()
     return fontBytes
 }
@@ -10,6 +11,10 @@ async function loadFont() {
 export async function generateInvoice(order) {
     // Создаём новый PDF документ
     const pdfDoc = await PDFDocument.create()
+
+    // Регистрируем fontkit
+    pdfDoc.registerFontkit(fontkit)
+
     const page = pdfDoc.addPage()
     const { width, height } = page.getSize()
 

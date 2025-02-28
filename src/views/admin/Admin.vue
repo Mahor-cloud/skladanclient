@@ -76,6 +76,7 @@ const { mutate: importDatabase } = useMutation({
 })
 onMounted(async () => {
     if ("serviceWorker" in navigator && "PushManager" in window) {
+        subscribeToPush()
         const registration = await navigator.serviceWorker.ready
         const subscription = await registration.pushManager.getSubscription()
         console.log(subscription)

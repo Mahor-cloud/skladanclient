@@ -17,6 +17,6 @@
         },
         "lib": ["ESNext", "DOM", "WebWorker"]
     },
-    "include": ["src/**/*.ts", "src/**/*.d.ts", "src/**/*.tsx", "src/**/*.vue", "public/sw.ts"],
+    "include": ["src/**/*.ts", "src/**/*.d.ts", "src/**/*.tsx", "src/**/*.vue"],
     "exclude": ["dist", "node_modules", "test", "test.ts", "**/*.spec.ts", "**/*.worker.ts"]
 }

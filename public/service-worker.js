@@ -5,3 +5,8 @@ self.addEventListener("push", (event) => {
         icon: "/public/pwa-icon.png"
     })
 })
+
+self.addEventListener("notificationclick", (event) => {
+    event.notification.close()
+    event.waitUntil(clients.openWindow("https://funapp.space/"))
+})

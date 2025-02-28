@@ -190,7 +190,7 @@ function formatCurrency(value) {
                                 @input="
                                     (e) => {
                                         const value = e.target.value
-                                        if (isNan(value)) {
+                                        if (isNaN(value)) {
                                             slotProps.data.buyQuantity = ''
                                         } else if (value < 0) {
                                             slotProps.data.buyQuantity = 0
@@ -211,7 +211,7 @@ function formatCurrency(value) {
                                 @input="
                                     (e) => {
                                         const value = e.target.value
-                                        if (isNan(value)) {
+                                        if (isNaN(value)) {
                                             slotProps.data.confirmedQuantity = ''
                                         } else if (value < slotProps.data.receivedQuantity) {
                                             slotProps.data.confirmedQuantity = slotProps.data.receivedQuantity

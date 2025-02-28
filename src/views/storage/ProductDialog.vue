@@ -88,7 +88,7 @@ const saveProduct = () => {
                         @input="
                             (e) => {
                                 const value = e.target.value
-                                if (isNan(value)) {
+                                if (isNaN(value)) {
                                     product.price = ''
                                 } else if (value < 0) {
                                     product.price = 0

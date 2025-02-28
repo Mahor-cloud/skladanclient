@@ -252,7 +252,7 @@ function hideBuyDialog() {
                     @input="
                         (e) => {
                             const value = e.target.value
-                            if (isNan(value)) {
+                            if (isNaN(value)) {
                                 product.buyQuantity = ''
                             } else if (value < 0) {
                                 product.buyQuantity = 0

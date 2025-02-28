@@ -165,7 +165,7 @@ function logoutHandler() {
                             @value-change="
                                 (event) => {
                                     const value = event
-                                    if (isNan(value)) {
+                                    if (isNaN(value)) {
                                         slotProps.data.buyQuantity = ''
                                     } else if (value < 1) {
                                         slotProps.data.buyQuantity = 1

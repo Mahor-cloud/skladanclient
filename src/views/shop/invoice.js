@@ -58,6 +58,14 @@ export async function generateInvoice(order) {
     const tableHeaders = ["Номер", "Наименование", "Цена", "Кол-во", "Сумма"]
     const rowHeight = 20
 
+    // Линия сверху таблицы
+    page.drawLine({
+        start: { x: 50, y: y + 10 }, // Смещение линии выше заголовков
+        end: { x: width - 50, y: y + 10 },
+        thickness: 1,
+        color: rgb(0, 0, 0)
+    })
+
     // Заголовки таблицы
     tableHeaders.forEach((header, index) => {
         page.drawText(header, {

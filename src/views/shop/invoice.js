@@ -59,9 +59,10 @@ export async function generateInvoice(order) {
     const rowHeight = 20
 
     // Линия сверху таблицы
+    const tableTopY = y + 10 // Верхняя линия таблицы
     page.drawLine({
-        start: { x: 50, y: y + 10 }, // Смещение линии выше заголовков
-        end: { x: width - 50, y: y + 10 },
+        start: { x: 50, y: tableTopY },
+        end: { x: width - 50, y: tableTopY },
         thickness: 1,
         color: rgb(0, 0, 0)
     })
@@ -77,9 +78,11 @@ export async function generateInvoice(order) {
         })
     })
 
+    // Горизонтальная линия под заголовками
+    const headerBottomY = y - 5
     page.drawLine({
-        start: { x: 50, y: y - 5 },
-        end: { x: width - 50, y: y - 5 },
+        start: { x: 50, y: headerBottomY },
+        end: { x: width - 50, y: headerBottomY },
         thickness: 1,
         color: rgb(0, 0, 0)
     })
@@ -97,6 +100,8 @@ export async function generateInvoice(order) {
                 color: rgb(0, 0, 0)
             })
         })
+
+        // Горизонтальная линия под строкой
         page.drawLine({
             start: { x: 50, y: y - 5 },
             end: { x: width - 50, y: y - 5 },
@@ -105,26 +110,29 @@ export async function generateInvoice(order) {
         })
     })
 
+    // Вертикальные линии таблицы
     let x = 50
+    const tableBottomY = y - 5 // Нижняя линия таблицы
     columnWidths.forEach((width, index) => {
         page.drawLine({
-            start: { x, y: height - 145 },
-            end: { x, y: y - 5 },
+            start: { x, y: tableTopY }, // Начинаем от верхней линии таблицы
+            end: { x, y: tableBottomY }, // Заканчиваем на нижней линии таблицы
             thickness: 1,
             color: rgb(0, 0, 0)
         })
         x += width
     })
+    // Последняя вертикальная линия
     page.drawLine({
-        start: { x, y: height - 145 },
-        end: { x, y: y - 5 },
+        start: { x, y: tableTopY },
+        end: { x, y: tableBottomY },
         thickness: 1,
         color: rgb(0, 0, 0)
     })
 
     // Итоговая сумма
     y -= 40
-    page.drawText(`Итого: ${order.totalPrice} ₽`, {
+    page.drawText(`${order.totalPrice}`, {
         x: width - 200,
         y,
         size: 14,

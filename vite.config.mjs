@@ -42,7 +42,7 @@ export default defineConfig({
                 ]
             },
             workbox: {
-                cacheId: "skladan-pwa-v1.0.5",
+                cleanupOutdatedCaches: true,
                 importScripts: ["/service-worker.js"],
                 runtimeCaching: [
                     {
@@ -67,8 +67,7 @@ export default defineConfig({
                             }
                         }
                     }
-                ],
-                cleanupOutdatedCaches: true
+                ]
             },
 
             devOptions: {

@@ -72,8 +72,9 @@ registerSW({
     immediate: true, // Немедленно проверить обновления
     onNeedRefresh() {
         // Показать уведомление о новом обновлении
-        confirm("Тест обновления приложения. Обновить страницу?")
-        window.location.reload()
+        if (confirm("Новая версия приложения доступна.")) {
+            window.location.reload()
+        }
     },
     onOfflineReady() {
         console.log("Приложение готово для работы в оффлайн-режиме.")

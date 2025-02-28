@@ -1,4 +1,4 @@
-import fontkit from "fontkit" // Импортируем fontkit
+import fontkit from "@pdf-lib/fontkit" // Импортируем fontkit
 import { PDFDocument, rgb } from "pdf-lib"
 
 // Загрузи шрифт (например, Arial)

@@ -7,7 +7,6 @@ import { defineConfig } from "vite"
 import { VitePWA } from "vite-plugin-pwa"
 import { icons } from "./public/icons.json"
 
-// https://vitejs.dev/config/
 export default defineConfig({
     optimizeDeps: {
         noDiscovery: true

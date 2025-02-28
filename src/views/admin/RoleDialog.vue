@@ -108,13 +108,13 @@ function handleSubmit() {
         <div class="flex flex-col gap-6">
             <div>
                 <label for="name" class="block font-bold mb-3">Название</label>
-                <InputText :disabled="!props.editable" id="name" autocomplete="off" v-model.trim="role.name" required="true" autofocus fluid />
+                <InputText :disabled="!props.editable || role.name === 'Admin'" id="name" autocomplete="off" v-model.trim="role.name" required="true" autofocus fluid />
                 <small v-if="submitted" class="text-red-500">Название необходимо.</small>
             </div>
 
             <div class="flex flex-wrap gap-4">
                 <div v-for="permission of permissions" :key="permission" class="flex flex-[1_0_calc(50%-1rem)] items-center gap-2">
-                    <Checkbox :disabled="!props.editable" v-model="role.permissions" name="category" :value="permission" />
+                    <Checkbox :disabled="!props.editable || role.name === 'Admin'" v-model="role.permissions" name="category" :value="permission" />
                     <label :for="permission">{{ permission }}</label>
                 </div>
             </div>
@@ -122,8 +122,8 @@ function handleSubmit() {
 
         <template #footer>
             <Button :disabled="!props.editable" label="Отмена" icon="pi pi-times" text @click="emit('closeRoleDialog')" />
-            <Button :disabled="!props.editable" label="Сохранить" icon="pi pi-check" @click="handleSubmit" />
-            <Button :disabled="isActiveUser || !props.editable" label="Удалить" icon="pi pi-trash" severity="danger" @click="deleteRole()" />
+            <Button :disabled="!props.editable || role.name === 'Admin'" label="Сохранить" icon="pi pi-check" @click="handleSubmit" />
+            <Button :disabled="isActiveUser || !props.editable || role.name === 'Admin'" label="Удалить" icon="pi pi-trash" severity="danger" @click="deleteRole()" />
         </template>
     </Dialog>
 </template>

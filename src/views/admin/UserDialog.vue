@@ -80,16 +80,16 @@ function handleSubmit() {
                 <small v-if="submitted" class="text-red-500">Название необходимо.</small>
             </div>
             <div class="items-center flex">
-                <Checkbox :disabled="!props.editable" v-model="user.isAdmin" binary />
+                <Checkbox :disabled="!props.editable || user.role.name === 'Admin'" v-model="user.isAdmin" binary />
                 <label class="ml-2">Служащий?</label>
             </div>
             <div class="flex flex-col">
                 <label class="block font-bold mb-3">Роль</label>
-                <Select :disabled="!props.editable" v-model="user.role" :options="props.rolesData" optionLabel="name" placeholder="Роль" class="w-full md:w-56" />
+                <Select :disabled="!props.editable || user.role.name === 'Admin'" v-model="user.role" :options="props.rolesData" optionLabel="name" placeholder="Роль" class="w-full md:w-56" />
             </div>
             <div class="flex flex-row gap-6">
                 <FloatLabel variant="on">
-                    <InputText :disabled="!props.editable" v-model.trim="user.login" inputId="login" />
+                    <InputText :disabled="!props.editable || user.role.name === 'Admin'" v-model.trim="user.login" inputId="login" />
                     <label for="login">Логин</label>
                 </FloatLabel>
                 <FloatLabel variant="on">
@@ -114,7 +114,7 @@ function handleSubmit() {
         <template #footer>
             <Button :disabled="!props.editable" label="Отмена" icon="pi pi-times" text @click="emit('closeUserDialog')" />
             <Button :disabled="!props.editable" label="Сохранить" icon="pi pi-check" @click="handleSubmit" />
-            <Button :disabled="!props.editable" label="Удалить" icon="pi pi-trash" severity="danger" @click="deleteUser()" />
+            <Button :disabled="!props.editable || user.role.name === 'Admin'" label="Удалить" icon="pi pi-trash" severity="danger" @click="deleteUser()" />
         </template>
     </Dialog>
 

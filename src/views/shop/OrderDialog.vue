@@ -185,8 +185,8 @@ function formatCurrency(value) {
             <span>Вы уверенны что хотите отменить текущий заказ?</span>
         </div>
         <template #footer>
-            <Button label="Закрыть" severity="secondary" icon="pi pi-times" text @click="confirmDeleteOrderDialog = false" />
-            <Button severity="danger" label="Yes" icon="pi pi-check" @click="deleteOrder()" />
+            <Button label="Нет" severity="secondary" icon="pi pi-times" text @click="confirmDeleteOrderDialog = false" />
+            <Button severity="danger" label="Да" icon="pi pi-check" @click="deleteOrder()" />
         </template>
     </Dialog>
     <Dialog v-model:visible="payDialog" :style="{ maxWidth: '450px' }" header="Подтвердите" :modal="true">

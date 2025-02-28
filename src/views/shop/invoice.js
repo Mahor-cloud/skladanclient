@@ -1,4 +1,11 @@
-import { PDFDocument, StandardFonts, rgb } from "pdf-lib"
+import { PDFDocument, rgb } from "pdf-lib"
+
+// Загрузи шрифт (например, Arial)
+async function loadFont() {
+    const response = await fetch("/fonts/time-roman.ttf")
+    const fontBytes = await response.arrayBuffer()
+    return fontBytes
+}
 
 export async function generateInvoice(order) {
     // Создаём новый PDF документ
@@ -6,15 +13,16 @@ export async function generateInvoice(order) {
     const page = pdfDoc.addPage()
     const { width, height } = page.getSize()
 
-    // Загружаем шрифт
-    const font = await pdfDoc.embedFont(StandardFonts.Helvetica)
+    // Загружаем кастомный шрифт
+    const fontBytes = await loadFont()
+    const customFont = await pdfDoc.embedFont(fontBytes)
 
     // Добавляем заголовок
     page.drawText(`Расходная накладная № ${order.orderNumber} от ${order.orderDate}`, {
         x: 50,
         y: height - 50,
         size: 24,
-        font,
+        font: customFont,
         color: rgb(0, 0, 0)
     })
 
@@ -24,7 +32,7 @@ export async function generateInvoice(order) {
         x: 50,
         y,
         size: 14,
-        font,
+        font: customFont,
         color: rgb(0, 0, 0)
     })
     y -= 20
@@ -32,7 +40,7 @@ export async function generateInvoice(order) {
         x: 50,
         y,
         size: 14,
-        font,
+        font: customFont,
         color: rgb(0, 0, 0)
     })
     y -= 20
@@ -40,7 +48,7 @@ export async function generateInvoice(order) {
         x: 50,
         y,
         size: 14,
-        font,
+        font: customFont,
         color: rgb(0, 0, 0)
     })
 
@@ -56,7 +64,7 @@ export async function generateInvoice(order) {
             x: 50 + columnWidths.slice(0, index).reduce((a, b) => a + b, 0),
             y,
             size: 12,
-            font,
+            font: customFont,
             color: rgb(0, 0, 0)
         })
     })
@@ -70,7 +78,7 @@ export async function generateInvoice(order) {
                 x: 50 + columnWidths.slice(0, cellIndex).reduce((a, b) => a + b, 0),
                 y,
                 size: 12,
-                font,
+                font: customFont,
                 color: rgb(0, 0, 0)
             })
         })
@@ -82,7 +90,7 @@ export async function generateInvoice(order) {
         x: width - 200,
         y,
         size: 14,
-        font,
+        font: customFont,
         color: rgb(0, 0, 0)
     })
 

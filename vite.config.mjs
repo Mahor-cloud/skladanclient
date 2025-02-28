@@ -44,7 +44,7 @@ export default defineConfig({
             },
             workbox: {
                 cleanupOutdatedCaches: true,
-                importScripts: ["/service-worker.js", ".src/sw.ts"],
+                importScripts: ["/service-worker.js", "./src/sw.ts"],
                 runtimeCaching: [
                     {
                         urlPattern: /\.(json|html|htm|js|css)$/,

@@ -52,7 +52,7 @@ export default defineConfig({
                             cacheName: "html-cache",
                             expiration: {
                                 maxEntries: 30,
-                                maxAgeSeconds: 60 * 60 * 2 // 2 часа
+                                maxAgeSeconds: 60 * 60 * 1 // 2 часа
                             }
                         }
                     },

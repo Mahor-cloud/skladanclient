@@ -80,9 +80,6 @@ onMounted(async () => {
         const subscription = await registration.pushManager.getSubscription()
         console.log(subscription)
         isSubscribed.value = !!subscription
-        if (!isSubscribed.value) {
-            subscribeToPush()
-        }
     }
 })
 

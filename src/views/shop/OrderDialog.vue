@@ -74,7 +74,7 @@ watchEffect(() => {
             ]
         }
         headerMessage.value = `Заказ номер ${order.value.orderNumber}, Заказчик: ${order.value.user.name}`
-        footerMessage.value = `Итого: ${formatCurrency(order.value.items.reduce((acc, item) => acc + item.price * item.buyQuantity, 0))}`
+        footerMessage.value = `Итого: ${order.value.items.reduce((acc, item) => acc + item.price * item.buyQuantity, 0)}`
         statusMessage.value = order.value.isCompleted
             ? "Завершен"
             : !order.value.isPaid && !order.value.confirmedPaid

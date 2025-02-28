@@ -42,7 +42,7 @@ export default defineConfig({
                 ]
             },
             workbox: {
-                cacheId: "skladan-pwa-v1.0.4",
+                cacheId: "skladan-pwa-v1.0.5",
                 importScripts: ["/service-worker.js"],
                 runtimeCaching: [
                     {

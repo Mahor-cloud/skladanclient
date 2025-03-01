@@ -88,7 +88,7 @@ export default defineConfig({
         rollupOptions: {
             cache: false,
             input: {
-                mainApp: "./index.html",
+                application: "./index.html",
                 "service-worker2": "./src/service-worker2.ts"
             },
             output: {

@@ -1,6 +1,5 @@
 import axios from "axios"
 import Cookies from "js-cookie"
-import { removeTokensStorage } from "./auth/auth.helper"
 import { authService } from "./auth/auth.service"
 export const axiosClassic = axios.create({
     baseURL: `/api`,
@@ -39,7 +38,7 @@ axiosInstance.interceptors.response.use(
             } catch (e) {
                 console.warn(errorCatch(error))
                 if (errorCatch(error) !== "Unauthorized" || errorCatch(error) === "jwt expired") {
-                    removeTokensStorage()
+                    authService.logout()
                 }
             }
         }

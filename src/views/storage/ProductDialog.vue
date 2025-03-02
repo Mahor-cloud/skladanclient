@@ -87,7 +87,7 @@ const saveProduct = () => {
                         type="number"
                         @input="
                             (e) => {
-                                const value = e.target.value
+                                const value = parseInt(e.target.value)
                                 if (isNaN(value)) {
                                     product.price = ''
                                 } else if (value < 0) {

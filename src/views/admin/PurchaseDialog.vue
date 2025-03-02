@@ -189,7 +189,7 @@ function formatCurrency(value) {
                                 type="number"
                                 @input="
                                     (e) => {
-                                        const value = e.target.value
+                                        const value = parseInt(e.target.value)
                                         if (isNaN(value)) {
                                             slotProps.data.buyQuantity = ''
                                         } else if (value < 0) {
@@ -211,7 +211,7 @@ function formatCurrency(value) {
                                 type="number"
                                 @input="
                                     (e) => {
-                                        const value = e.target.value
+                                        const value = parseInt(e.target.value)
                                         if (isNaN(value)) {
                                             slotProps.data.confirmedQuantity = ''
                                         } else if (value < slotProps.data.receivedQuantity) {

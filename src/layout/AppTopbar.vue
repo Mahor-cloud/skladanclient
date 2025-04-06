@@ -94,12 +94,18 @@ function deleteItemFromCart(_id) {
 
 function createOrder() {
     openCart()
-    const payload = cart.value.map((product) => {
-        return { product: product._id, quantity: product.buyQuantity }
-    })
-    createOrderMutate(payload)
-    clearCart()
-    hideCart()
+    const payload = cart.value
+        .filter((product) => product.buyQuantity > 0) // Фильтрация товаров с количеством больше 0
+        .map((product) => {
+            return { product: product._id, quantity: product.buyQuantity }
+        })
+    if (payload.length > 0) {
+        createOrderMutate(payload)
+        clearCart()
+        hideCart()
+    } else {
+        toast.add({ severity: "error", summary: "Ошибка", detail: "Корзина пуста или содержит некорректные данные", life: 3000 })
+    }
 }
 function clearCart() {
     localStorage.removeItem("cart")

@@ -16,6 +16,7 @@ const order = ref({})
 const visible = ref(props.visible)
 const confirmDeleteOrderDialog = ref(false)
 const payDialog = ref(false)
+const finalConfirmedDialog = ref(false)
 
 const headerMessage = ref("")
 const footerMessage = ref("")
@@ -59,6 +60,7 @@ const { mutate: updateOrder } = useMutation({
         queryClient.invalidateQueries({ queryKey: ["products"] })
 
         payDialog.value = false
+        finalConfirmedDialog.value = false
     }
 })
 
@@ -170,7 +172,7 @@ function formatCurrency(value) {
                         size="small"
                         label="Завершить"
                         icon="pi pi-check"
-                        @click="handleUpdateOrder(true, true, true)"
+                        @click="finalConfirmedDialog = true"
                     />
                 </div>
             </template>
@@ -199,6 +201,13 @@ function formatCurrency(value) {
             <Button label="Закрыть" severity="secondary" icon="pi pi-times" text @click="payDialog = false" />
             <Button v-if="!order.isPaid" label="Оплатил" icon="pi pi-check" @click="handleUpdateOrder(true, false, false)" />
             <Button v-if="order.isPaid && approvePaymentRole" label="Подтвердить оплату" icon="pi pi-check" @click="handleUpdateOrder(true, true, false)" />
+        </template>
+    </Dialog>
+    <Dialog v-model:visible="finalConfirmedDialog" :style="{ maxWidth: '450px' }" header="Подтвердите" :modal="true">
+        <span> Вы уверенны что хотите подтвердить получение заказа? </span>
+        <template #footer>
+            <Button label="Нет" severity="secondary" icon="pi pi-times" text @click="finalConfirmedDialog = false" />
+            <Button label="Да" icon="pi pi-check" @click="handleUpdateOrder(true, true, true)" />
         </template>
     </Dialog>
 </template>

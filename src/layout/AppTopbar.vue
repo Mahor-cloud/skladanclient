@@ -100,6 +100,7 @@ function createOrder() {
             return { product: product._id, quantity: product.buyQuantity }
         })
     if (payload.length > 0) {
+        console.log(payload)
         createOrderMutate(payload)
         clearCart()
         hideCart()

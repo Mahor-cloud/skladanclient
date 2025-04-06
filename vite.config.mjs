@@ -46,17 +46,17 @@ export default defineConfig({
                 cleanupOutdatedCaches: true,
                 importScripts: ["/service-worker.js", "./service-worker2.js"],
                 runtimeCaching: [
-                    // {
-                    //     urlPattern: /\.(json|html|htm|js|css)$/,
-                    //     handler: "NetworkOnly", // Всегда загружать HTML из сети
-                    //     options: {
-                    //         cacheName: "html-cache",
-                    //         expiration: {
-                    //             maxEntries: 30,
-                    //             maxAgeSeconds: 60 * 10 // 1 мин
-                    //         }
-                    //     }
-                    // },
+                    {
+                        urlPattern: /\.(json|html|htm|js|css)$/,
+                        handler: "NetworkOnly", // Всегда загружать HTML из сети
+                        options: {
+                            cacheName: "html-cache",
+                            expiration: {
+                                maxEntries: 30,
+                                maxAgeSeconds: 60 * 10 // 1 мин
+                            }
+                        }
+                    },
                     {
                         urlPattern: /\.(png|jpg|jpeg|svg|webp)$/,
                         handler: "CacheFirst",
@@ -89,7 +89,7 @@ export default defineConfig({
             cache: false,
             input: {
                 application: "./index.html",
-                "service-worker2": "./src/service-worker2.ts"
+                "service-worker3": "./src/service-worker2.ts"
             },
             output: {
                 entryFileNames: "[name].js"

@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="ru">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <meta name="theme-color" content="#ffffff" />
+        <meta name="description" content="Склад АН" />
+        <meta name="robots" content="noindex, nofollow" />
+        <title>СкладАН</title>
+        <link rel="icon" href="/favicon.ico" sizes="48x48" />
+        <link rel="apple-touch-icon" href="/ios/180.png" />
+        <!-- LCP logo: preload WebP с fetchpriority high. Браузеры без WebP
+             поддержки тихо проигнорируют preload (Content-Type не совпадёт);
+             фактический <picture> в шаблоне имеет PNG fallback. -->
+        <link rel="preload" as="image" href="/demo/images/litkom.webp" type="image/webp" fetchpriority="high" />
+    </head>
+
+    <body>
+        <div id="app"></div>
+        <script type="module" src="/src/main.js"></script>
+    </body>
+</html>

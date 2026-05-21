@@ -1,0 +1,80 @@
+@use '@/assets/layout/layout.scss';
+@use 'primeicons/primeicons.css';
+
+.sticky-actions-table .p-datatable-table-container,
+.p-datatable-scrollable .p-datatable-table-container {
+    overflow-x: scroll !important;
+    scrollbar-width: thin;
+    scrollbar-color: var(--p-primary-color, #7c5cff) rgba(124, 92, 255, 0.15);
+    scrollbar-gutter: stable;
+}
+.sticky-actions-table .p-datatable-table-container::-webkit-scrollbar,
+.p-datatable-scrollable .p-datatable-table-container::-webkit-scrollbar {
+    height: 8px;
+    -webkit-appearance: none;
+}
+.sticky-actions-table .p-datatable-table-container::-webkit-scrollbar-track,
+.p-datatable-scrollable .p-datatable-table-container::-webkit-scrollbar-track {
+    background: rgba(124, 92, 255, 0.15);
+    border-radius: 999px;
+}
+.sticky-actions-table .p-datatable-table-container::-webkit-scrollbar-thumb,
+.p-datatable-scrollable .p-datatable-table-container::-webkit-scrollbar-thumb {
+    background: var(--p-primary-color, #7c5cff);
+    border-radius: 999px;
+}
+.sticky-actions-table .p-datatable-table-container::-webkit-scrollbar-thumb:hover,
+.p-datatable-scrollable .p-datatable-table-container::-webkit-scrollbar-thumb:hover {
+    background: var(--p-primary-600, #6b4ce0);
+}
+/* Липкая колонка действий — ВСЕГДА непрозрачный фон + тень, чтобы данные
+   уезжали ПОД неё, а не просвечивали сквозь. Селектор с tbody/thead+tr+td/th
+   намеренно мощнее, чем scoped-подсветка строки (own-row / shortage-row /
+   hover / striped) — иначе её rgba просачивается в липкую ячейку и колонка
+   под ней «светится» сквозь кнопку действий. */
+.sticky-actions-table table thead tr th.p-datatable-frozen-column,
+.sticky-actions-table table tbody tr td.p-datatable-frozen-column {
+    background: var(--p-content-background, var(--surface-0, #fff)) !important;
+    box-shadow: -6px 0 8px -6px rgba(0, 0, 0, 0.25);
+    z-index: 1;
+}
+.app-dark .sticky-actions-table table thead tr th.p-datatable-frozen-column,
+.app-dark .sticky-actions-table table tbody tr td.p-datatable-frozen-column {
+    background: var(--p-content-background, #1f1f23) !important;
+}
+/* Колонка действий — по размеру кнопки, без лишнего места.
+   Минимальные горизонтальные паддинги у замороженной ячейки/шапки. */
+.sticky-actions-table .p-datatable-frozen-column,
+.sticky-actions-table thead th.p-datatable-frozen-column {
+    padding-left: 4px !important;
+    padding-right: 4px !important;
+    text-align: center;
+}
+.sticky-actions-table .p-datatable-frozen-column .p-button {
+    margin: 0 auto;
+}
+
+/* WCAG AA: текст severity-кнопок info (sky #0ea5e9) и help (purple #a855f7)
+   в outlined/text-вариантах давал 2.5–3:1 на белом. Затемняем только цвет
+   текста/границы этих вариантов — фон/раскладка/логика не трогаются. */
+.p-button.p-button-outlined.p-button-info,
+.p-button.p-button-text.p-button-info {
+    color: #0369a1;
+    border-color: #0369a1;
+}
+.p-button.p-button-outlined.p-button-help,
+.p-button.p-button-text.p-button-help {
+    color: #7e22ce;
+    border-color: #7e22ce;
+}
+.app-dark .p-button.p-button-outlined.p-button-info,
+.app-dark .p-button.p-button-text.p-button-info {
+    color: #7dd3fc;
+    border-color: #7dd3fc;
+}
+.app-dark .p-button.p-button-outlined.p-button-help,
+.app-dark .p-button.p-button-text.p-button-help {
+    color: #d8b4fe;
+    border-color: #d8b4fe;
+}
+

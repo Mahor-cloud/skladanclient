@@ -120,7 +120,6 @@ watchEffect(() => {
     if (isSuccess.value) {
         products.value = data.value
 
-
         categories.value = [...new Set(data.value.map((p) => p.category).filter(Boolean))].map((category) => ({ category }))
     }
 })

@@ -413,7 +413,6 @@ const barOptionsHorizontal = computed(() => {
             legend: { display: false },
         },
 
-
         categoryPercentage: 0.9,
         barPercentage: 0.95,
     }
@@ -546,7 +545,6 @@ function exportCsv() {
                     <div class="kpi-card__hint">{{ data.summary.ordersCount.completed }} из {{ data.summary.ordersCount.created }}</div>
                 </div>
             </div>
-
 
             <div class="charts-grid">
                 <div class="chart-card chart-card--wide">

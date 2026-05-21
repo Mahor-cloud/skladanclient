@@ -36,7 +36,6 @@ const { mutate: createInventorization, isSuccess: isSuccessCreate } = useMutatio
     },
     onSuccess: (data) => {
 
-
         queryClient.invalidateQueries({ queryKey: ["inventorization", data.data._id] })
         queryClient.invalidateQueries({ queryKey: ["inventorizations"] })
         toast.add({ severity: "success", summary: "Успешно", detail: "Инвентаризация создана", life: 3000 })

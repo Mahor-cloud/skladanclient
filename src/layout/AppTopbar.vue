@@ -45,7 +45,6 @@ const { mutate: changeOwnPassword, isPending: isPwdChanging } = useMutation({
         (await axiosInstance.put("/auth/me/password", { currentPassword: pwdCurrent.value, newPassword: pwdNew.value })).data,
     onSuccess: (data) => {
 
-
         if (data?.accessToken && data?.refreshToken) {
             saveTokensStorage({ accessToken: data.accessToken, refreshToken: data.refreshToken })
         }
@@ -259,7 +258,6 @@ async function createOrder() {
         .filter((product) => product.buyQuantity > 0)
         .map((product) => ({ product: product._id, quantity: product.buyQuantity }))
     if (payload.length > 0) {
-
 
         createOrderMutate(payload)
     } else {

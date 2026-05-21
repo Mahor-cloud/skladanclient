@@ -9,9 +9,7 @@ html {
 }
 
 body {
-    /* Системный шрифтовый стек — без render-blocking внешнего CDN (был
-       fonts.cdnfonts.com/lato). Шрифты дизайн-системы в коде не подключены,
-       приложение и так де-факто рендерилось fallback'ом. */
+
     font-family: system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
     color: var(--text-color);
     background-color: var(--surface-ground);

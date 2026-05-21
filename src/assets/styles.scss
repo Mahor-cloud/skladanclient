@@ -32,11 +32,7 @@
 .p-datatable-scrollable .p-datatable-table-container::-webkit-scrollbar-thumb:hover {
     background: var(--p-primary-600, #6b4ce0);
 }
-/* Липкая колонка действий — ВСЕГДА непрозрачный фон + тень, чтобы данные
-   уезжали ПОД неё, а не просвечивали сквозь. Селектор с tbody/thead+tr+td/th
-   намеренно мощнее, чем scoped-подсветка строки (own-row / shortage-row /
-   hover / striped) — иначе её rgba просачивается в липкую ячейку и колонка
-   под ней «светится» сквозь кнопку действий. */
+
 .sticky-actions-table table thead tr th.p-datatable-frozen-column,
 .sticky-actions-table table tbody tr td.p-datatable-frozen-column {
     background: var(--p-content-background, var(--surface-0, #fff)) !important;
@@ -47,8 +43,7 @@
 .app-dark .sticky-actions-table table tbody tr td.p-datatable-frozen-column {
     background: var(--p-content-background, #1f1f23) !important;
 }
-/* Колонка действий — по размеру кнопки, без лишнего места.
-   Минимальные горизонтальные паддинги у замороженной ячейки/шапки. */
+
 .sticky-actions-table .p-datatable-frozen-column,
 .sticky-actions-table thead th.p-datatable-frozen-column {
     padding-left: 4px !important;
@@ -59,9 +54,6 @@
     margin: 0 auto;
 }
 
-/* WCAG AA: текст severity-кнопок info (sky #0ea5e9) и help (purple #a855f7)
-   в outlined/text-вариантах давал 2.5–3:1 на белом. Затемняем только цвет
-   текста/границы этих вариантов — фон/раскладка/логика не трогаются. */
 .p-button.p-button-outlined.p-button-info,
 .p-button.p-button-text.p-button-info {
     color: #0369a1;

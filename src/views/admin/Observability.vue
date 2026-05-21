@@ -974,7 +974,6 @@ function showMetricInfo(key, event) {
                 </div>
             </div>
 
-
             <h3 class="section-title">HTTP-эндпоинты (топ-20 с момента старта процесса, p50/p95/p99)</h3>
             <div v-if="httpStats.length === 0" class="text-muted-color text-sm mb-5">
                 Пока не зафиксировано HTTP-запросов. Метрики появятся после первых обращений к API.

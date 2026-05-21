@@ -198,7 +198,6 @@ watchEffect(() => {
 
                     buyQuantitySort: item.quantity,
 
-
                     originalBuyQty: item.quantity,
                     confirmedQuantity: item.confirmedQuantity,
                     receivedQuantity: item.confirmedQuantity

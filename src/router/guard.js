@@ -26,8 +26,6 @@ router.beforeEach((to, from, next) => {
         const user = loadUser();
         if (!user) return next('/auth/login');
 
-
-
         if (user.isSuperAdmin) {
             const path = to.path.replace(/\/$/, '') || '/';
             const allowedRoots = ['/companies', '/seeds', '/observability']
@@ -38,11 +36,9 @@ router.beforeEach((to, from, next) => {
             return next();
         }
 
-
         if (to.meta?.superAdmin) {
             return next('/auth/access');
         }
-
 
         const requiredPermission = to.meta?.permission;
         if (requiredPermission) {

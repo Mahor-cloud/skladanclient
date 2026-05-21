@@ -226,9 +226,14 @@ export async function generateInvoice(order) {
         color: accentColor
     })
 
+    const totalSum = items.reduce(
+        (acc, it) => acc + (Number(it.price) || 0) * (Number(it.buyQuantity) || 0),
+        0
+    )
+
     y -= 28
     const totalLabel = "ИТОГО:"
-    const totalValue = `${formatRub(order.totalPrice)} ₽`
+    const totalValue = `${formatRub(totalSum)} руб.`
     const totalValueW = font.widthOfTextAtSize(totalValue, 14)
     const totalLabelW = font.widthOfTextAtSize(totalLabel, 12)
     page.drawText(totalLabel, {

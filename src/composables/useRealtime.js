@@ -82,7 +82,6 @@ async function refreshCurrentUser() {
     } catch (e) {
         const status = e?.response?.status
 
-
         if (status === 404) {
             try {
                 window.location.replace("/#/auth/access?reason=session")

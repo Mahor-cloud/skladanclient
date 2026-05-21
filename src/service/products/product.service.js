@@ -1,3 +1,8 @@
+/**
+ * Copyright 2026 Lord_mahor
+ * Licensed under Apache 2.0
+ */
+
 import { useQuery } from "@tanstack/vue-query"
 import axiosInstance from "../axios"
 import { isAuthenticated } from "../auth/auth.helper"

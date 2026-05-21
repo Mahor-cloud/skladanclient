@@ -1,4 +1,8 @@
 <script setup>
+/**
+ * Copyright 2026 Lord_mahor
+ * Licensed under Apache 2.0
+ */
 import axiosInstance from "@/service/axios"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/vue-query"
 import { computed, ref, watchEffect } from "vue"

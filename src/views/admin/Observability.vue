@@ -1,4 +1,8 @@
 <script setup>
+/**
+ * Copyright 2026 Lord_mahor
+ * Licensed under Apache 2.0
+ */
 import axiosInstance from "@/service/axios"
 import { useQuery } from "@tanstack/vue-query"
 import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue"
@@ -1146,10 +1150,40 @@ function showMetricInfo(key, event) {
                 <p>{{ popoverInfo.body }}</p>
             </div>
         </Popover>
+
+        <footer class="author-footer">
+            <span>Автор:</span>
+            <a href="https://t.me/Lord_mahor" target="_blank" rel="noopener noreferrer">Lord_mahor</a>
+        </footer>
     </div>
 </template>
 
 <style scoped>
+.author-footer {
+    margin-top: 2rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--p-surface-200);
+    text-align: center;
+    font-size: 0.85rem;
+    color: var(--p-text-muted-color, #64748b);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 0.4rem;
+}
+.author-footer a {
+    color: var(--p-primary-color, #0ea5e9);
+    text-decoration: none;
+    font-weight: 600;
+}
+.author-footer a:hover {
+    text-decoration: underline;
+}
+:deep(.app-dark) .author-footer,
+.app-dark .author-footer {
+    border-top-color: var(--p-surface-700);
+}
+
 .section-title {
     font-size: 1rem;
     font-weight: 600;

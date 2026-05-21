@@ -1,3 +1,8 @@
+/**
+ * Copyright 2026 Lord_mahor
+ * Licensed under Apache 2.0
+ */
+
 import axiosInstance from "@/service/axios"
 import { queryClient } from "@/service/queryClient"
 import Cookies from "js-cookie"

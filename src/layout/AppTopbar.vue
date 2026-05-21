@@ -1,4 +1,8 @@
 <script setup>
+/**
+ * Copyright 2026 Lord_mahor
+ * Licensed under Apache 2.0
+ */
 import { useLayout } from "@/layout/composables/layout"
 import router from "@/router"
 import { authService } from "@/service/auth/auth.service"

@@ -1,6 +1,13 @@
 {
-    "name": "skladan",
+    "name": "skladanclient",
     "version": "1.2.0",
+    "description": "Skladan frontend — Vue 3 PWA для складской системы.",
+    "author": {
+        "name": "Lord_mahor",
+        "url": "https://t.me/Lord_mahor"
+    },
+    "license": "Apache-2.0",
+    "private": true,
     "scripts": {
         "dev": "vite",
         "build": "vite build",

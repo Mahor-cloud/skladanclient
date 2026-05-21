@@ -1,3 +1,7 @@
+<!--
+  Copyright 2026 Lord_mahor
+  Licensed under Apache 2.0
+-->
 <template>
     <div class="flex items-center justify-center min-h-screen overflow-hidden">
         <div class="flex flex-col items-center justify-center">

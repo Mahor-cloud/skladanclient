@@ -1,3 +1,8 @@
+/**
+ * Copyright 2026 Lord_mahor
+ * Licensed under Apache 2.0
+ */
+
 import Cookies from 'js-cookie'
 
 const isHttps = typeof window !== 'undefined' && window.location?.protocol === 'https:'

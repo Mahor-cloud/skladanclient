@@ -1,4 +1,8 @@
 <script setup>
+/**
+ * Copyright 2026 Lord_mahor
+ * Licensed under Apache 2.0
+ */
 import StatusPill from "@/components/StatusPill.vue"
 import { useLayout } from "@/layout/composables/layout"
 import axiosInstance from "@/service/axios"

@@ -1,3 +1,8 @@
+/**
+ * Copyright 2026 Lord_mahor
+ * Licensed under Apache 2.0
+ */
+
 import { createApp } from "vue"
 import App from "./App.vue"
 import router from "./router"

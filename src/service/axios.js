@@ -1,3 +1,8 @@
+/**
+ * Copyright 2026 Lord_mahor
+ * Licensed under Apache 2.0
+ */
+
 import axios from "axios"
 import Cookies from "js-cookie"
 import { authService } from "./auth/auth.service"

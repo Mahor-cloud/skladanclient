@@ -1,4 +1,8 @@
 <script setup>
+/**
+ * Copyright 2026 Lord_mahor
+ * Licensed under Apache 2.0
+ */
 import { useIsFetching, useIsMutating } from "@tanstack/vue-query"
 import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue"
 import { useRouter } from "vue-router"

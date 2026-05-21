@@ -1,3 +1,8 @@
+/**
+ * Copyright 2026 Lord_mahor
+ * Licensed under Apache 2.0
+ */
+
 import fontkit from "@pdf-lib/fontkit"
 import { PDFDocument, rgb } from "pdf-lib"
 

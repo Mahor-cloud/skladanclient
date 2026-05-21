@@ -1,4 +1,8 @@
 <script setup>
+/**
+ * Copyright 2026 Lord_mahor
+ * Licensed under Apache 2.0
+ */
 import router from "@/router"
 import { saveToStorage } from "@/service/auth/auth.helper"
 import axiosInstance from "@/service/axios"

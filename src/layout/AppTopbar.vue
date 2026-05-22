@@ -3,6 +3,7 @@
  * Copyright 2026 Lord_mahor
  * Licensed under Apache 2.0
  */
+import { useCurrentUser } from "@/composables/useCurrentUser"
 import { useLayout } from "@/layout/composables/layout"
 import router from "@/router"
 import { authService } from "@/service/auth/auth.service"
@@ -75,14 +76,7 @@ function submitPasswordChange() {
     changeOwnPassword()
 }
 
-function readUserSafely() {
-    try {
-        return JSON.parse(localStorage.getItem("user") || "null")
-    } catch {
-        return null
-    }
-}
-const currentUser = ref(readUserSafely())
+const currentUser = useCurrentUser()
 const isSuperAdmin = computed(() => !!currentUser.value?.isSuperAdmin)
 
 const totalAmount = computed({

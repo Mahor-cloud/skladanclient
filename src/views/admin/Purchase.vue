@@ -3,13 +3,14 @@
  * Copyright 2026 Lord_mahor
  * Licensed under Apache 2.0
  */
+import StatusPill from "@/components/StatusPill.vue"
+import { useCurrentUser } from "@/composables/useCurrentUser"
 import axiosInstance from "@/service/axios"
 import formatTimestamp from "@/service/DateService"
 import { FilterMatchMode } from "@primevue/core/api"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/vue-query"
 import { useToast } from "primevue"
 import { computed, ref, watchEffect } from "vue"
-import StatusPill from "@/components/StatusPill.vue"
 import PurchaseDialog from "./PurchaseDialog.vue"
 
 const purchases = ref()
@@ -22,7 +23,7 @@ const filters = ref({
     date: { value: null, matchMode: FilterMatchMode.IN }
 })
 
-const user = ref(JSON.parse(localStorage.getItem("user") || "null"))
+const user = useCurrentUser()
 
 const clearFilter = () => {
     filters.value = {
@@ -72,6 +73,16 @@ const { mutate: createPurchaseOrder } = useMutation({
         purchaseOrder.value = data.data?._id
         confirmCreatePurchaseOrderDialog.value = false
         purchaseOrderDialog.value = true
+    },
+    onError: (err) => {
+        confirmCreatePurchaseOrderDialog.value = false
+        const payload = err?.response?.data
+        toast.add({
+            severity: "error",
+            summary: payload?.code === "ACTIVE_INVENTORY" ? "Закупка невозможна" : "Ошибка",
+            detail: payload?.message || err?.message || "Не удалось создать закупку",
+            life: 7000
+        })
     }
 })
 

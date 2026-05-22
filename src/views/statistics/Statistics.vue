@@ -4,6 +4,7 @@
  * Licensed under Apache 2.0
  */
 import StatusPill from "@/components/StatusPill.vue"
+import { useCurrentUser } from "@/composables/useCurrentUser"
 import { useLayout } from "@/layout/composables/layout"
 import axiosInstance from "@/service/axios"
 import OrderDialog from "@/views/shop/OrderDialog.vue"
@@ -12,7 +13,7 @@ import { computed, ref, watch } from "vue"
 
 const { isDarkTheme } = useLayout()
 
-const user = ref(JSON.parse(localStorage.getItem("user") || "null"))
+const user = useCurrentUser()
 
 const _now = Date.now()
 const _fallbackStart = new Date(2020, 0, 1).getTime()
@@ -402,8 +403,29 @@ const themeAwareOptions = computed(() => {
     }
 })
 
+function wrapChartLabel(label) {
+    if (typeof label !== "string") return label
+    const MAX = 22
+    if (label.length <= MAX) return label
+    const mid = Math.floor(label.length / 2)
+    const spaceLeft = label.lastIndexOf(" ", mid)
+    const spaceRight = label.indexOf(" ", mid + 1)
+    let breakAt = -1
+    if (spaceLeft > 0 && (mid - spaceLeft) <= (spaceRight < 0 ? 99 : spaceRight - mid)) {
+        breakAt = spaceLeft
+    } else if (spaceRight > 0) {
+        breakAt = spaceRight
+    }
+    if (breakAt < 0) return label
+    const first = label.slice(0, breakAt)
+    const second = label.slice(breakAt + 1)
+    return [first, second]
+}
+
 const barOptionsHorizontal = computed(() => {
     const base = themeAwareOptions.value
+    const baseYTicks = base?.scales?.y?.ticks || {}
+    const baseY = base?.scales?.y || {}
     return {
         ...base,
         indexAxis: "y",
@@ -411,10 +433,37 @@ const barOptionsHorizontal = computed(() => {
         plugins: {
             ...base.plugins,
             legend: { display: false },
+            tooltip: {
+                ...(base.plugins?.tooltip || {}),
+                callbacks: {
+                    title: (items) => {
+                        if (!items || !items.length) return ""
+                        return items[0].label || ""
+                    }
+                }
+            }
         },
 
         categoryPercentage: 0.9,
         barPercentage: 0.95,
+
+        scales: {
+            ...base.scales,
+            y: {
+                ...baseY,
+                ticks: {
+                    ...baseYTicks,
+                    autoSkip: false,
+                    crossAlign: "far",
+                    callback: function (value) {
+                        return wrapChartLabel(this.getLabelForValue(value) || "")
+                    }
+                },
+                afterFit: function (scale) {
+                    scale.width = Math.max(scale.width, 140)
+                }
+            }
+        }
     }
 })
 
@@ -586,9 +635,9 @@ function exportCsv() {
                             show-gridlines
                             data-key="productId"
                         >
-                            <Column field="name" header="Товар">
+                            <Column field="name" header="Товар" style="min-width: 14rem">
                                 <template #body="{ data: row }">
-                                    <span :title="row.name">{{ row.name }}</span>
+                                    <span :title="row.name" class="wrap-name">{{ row.name }}</span>
                                 </template>
                             </Column>
                             <Column field="received" header="Получено" style="width: 90px; text-align: right" />
@@ -680,8 +729,6 @@ function exportCsv() {
                         </template>
                     </Column>
                     <Column
-                        frozen
-                        alignFrozen="right"
                         style="min-width: 52px; width: 52px"
                         bodyStyle="text-align:center; padding:4px"
                     >
@@ -915,6 +962,12 @@ function exportCsv() {
     margin-left: auto;
 }
 
+.wrap-name {
+    display: inline-block;
+    white-space: normal;
+    word-break: break-word;
+    line-height: 1.25;
+}
 .gap--zero {
     color: #16a34a;
     font-weight: 600;

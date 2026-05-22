@@ -35,7 +35,8 @@ const { isError, data, error, isSuccess, isFetching } = useQuery({
     queryFn: async () => await axiosInstance.get(`inventory/${props.inventorization}`),
     select: (data) => data.data,
     enabled: !!props.inventorization,
-    staleTime: 1000 * 60 * 5,
+    refetchOnMount: "always",
+    staleTime: 0,
     refetchInterval: 1000 * 60 * 5
 })
 

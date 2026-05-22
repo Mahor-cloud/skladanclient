@@ -4,6 +4,7 @@
  * Licensed under Apache 2.0
  */
 import StatusPill from "@/components/StatusPill.vue"
+import { useCurrentUser } from "@/composables/useCurrentUser"
 import axiosInstance from "@/service/axios"
 import formatTimestamp from "@/service/DateService"
 import { FilterMatchMode } from "@primevue/core/api"
@@ -18,13 +19,8 @@ const order = ref({})
 const orderDialog = ref(false)
 const visible = ref(false)
 
-const currentUserId = (() => {
-    try {
-        return JSON.parse(localStorage.getItem("user") || "null")?._id || null
-    } catch {
-        return null
-    }
-})()
+const currentUser = useCurrentUser()
+const currentUserId = computed(() => currentUser.value?._id || null)
 const filters = ref({
     global: { value: null, matchMode: FilterMatchMode.CONTAINS },
     status: { value: null, matchMode: FilterMatchMode.IN },
@@ -76,7 +72,8 @@ function rowClass(row) {
     if (!row || row._skeleton) return ""
 
     if (blockedOrderIds.value.has(String(row._id))) return "shortage-row"
-    if (currentUserId && String(row.user?._id) === String(currentUserId)) return "own-row"
+    const uid = currentUserId.value
+    if (uid && String(row.user?._id) === String(uid)) return "own-row"
     return ""
 }
 
@@ -181,7 +178,7 @@ function hideOrderDialog() {
                     <p v-else style="font-size: 14px">{{ formatTimestamp(slotProps.data.orderDate) }}</p>
                 </template>
             </Column>
-            <Column frozen alignFrozen="right" style="min-width: 52px; width: 52px" bodyStyle="text-align:center; padding:4px">
+            <Column style="min-width: 52px; width: 52px" bodyStyle="text-align:center; padding:4px">
                 <template #header><span class="sr-only">Действия</span></template>
                 <template #body="slotProps">
                     <Skeleton v-if="slotProps.data._skeleton" shape="circle" size="2rem" />

@@ -3,6 +3,7 @@
  * Copyright 2026 Lord_mahor
  * Licensed under Apache 2.0
  */
+import { useCurrentUser } from "@/composables/useCurrentUser"
 import axiosInstance from "@/service/axios"
 import { FilterMatchMode } from "@primevue/core/api"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/vue-query"
@@ -44,15 +45,12 @@ const partialCompleted = computed({
 
 const queryClient = useQueryClient()
 
-const _user = (() => {
-    try {
-        return JSON.parse(localStorage.getItem("user") || "null")
-    } catch {
-        return null
-    }
-})()
-const _perms = _user?.role?.permissions || []
-const canExceedTarget = _user?.role?.isSystem === true || _perms.includes("approve_target_exceed")
+const currentUser = useCurrentUser()
+const canExceedTarget = computed(() => {
+    const u = currentUser.value
+    const perms = u?.role?.permissions || []
+    return u?.role?.isSystem === true || perms.includes("approve_target_exceed")
+})
 const targetExceedDialog = ref(false)
 
 function targetCap(row) {
@@ -61,7 +59,7 @@ function targetCap(row) {
     return Math.max(t, Number(row?.originalBuyQty) || 0)
 }
 function overTarget(row) {
-    if (canExceedTarget) return false
+    if (canExceedTarget.value) return false
     const cap = targetCap(row)
     if (cap === Infinity) return false
     const planned = Number(row?.buyQuantity) || 0
@@ -124,7 +122,8 @@ const { data, isSuccess } = useQuery({
     queryFn: async () => await axiosInstance.get(`/purchases/${props.order}`),
     select: (data) => data.data,
     enabled: !!props.order,
-    staleTime: 1000 * 60 * 5
+    refetchOnMount: "always",
+    staleTime: 0
 })
 
 const { data: productsList } = useQuery({

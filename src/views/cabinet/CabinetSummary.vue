@@ -3,21 +3,15 @@
  * Copyright 2026 Lord_mahor
  * Licensed under Apache 2.0
  */
+import { useCurrentUser } from "@/composables/useCurrentUser"
 import axiosInstance from "@/service/axios"
 import { FilterMatchMode } from "@primevue/core/api"
 import { useQuery } from "@tanstack/vue-query"
 import { computed, ref } from "vue"
 
-const _user = (() => {
-    try {
-        return JSON.parse(localStorage.getItem("user") || "null")
-    } catch {
-        return null
-    }
-})()
-const _perms = _user?.role?.permissions || []
-const canSummary = computed(() => _perms.includes("view_cabinet_summary"))
-const canAll = computed(() => _perms.includes("view_all_cabinets"))
+const currentUser = useCurrentUser()
+const canSummary = computed(() => (currentUser.value?.role?.permissions || []).includes("view_cabinet_summary"))
+const canAll = computed(() => (currentUser.value?.role?.permissions || []).includes("view_all_cabinets"))
 
 const filters = ref({
     global: { value: null, matchMode: FilterMatchMode.CONTAINS }

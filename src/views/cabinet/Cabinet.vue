@@ -3,6 +3,7 @@
  * Copyright 2026 Lord_mahor
  * Licensed under Apache 2.0
  */
+import { useCurrentUser } from "@/composables/useCurrentUser"
 import axiosInstance from "@/service/axios"
 import { FilterMatchMode } from "@primevue/core/api"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/vue-query"
@@ -12,7 +13,7 @@ import AddCabinetItemDialog from "./AddCabinetItemDialog.vue"
 
 const toast = useToast()
 const queryClient = useQueryClient()
-const user = ref(JSON.parse(localStorage.getItem("user") || "null"))
+const user = useCurrentUser()
 
 const addDialog = ref(false)
 const editingItem = ref(null)

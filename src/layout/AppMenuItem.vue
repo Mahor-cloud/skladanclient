@@ -3,6 +3,7 @@
  * Copyright 2026 Lord_mahor
  * Licensed under Apache 2.0
  */
+import { useCurrentUser } from "@/composables/useCurrentUser"
 import { useLayout } from "@/layout/composables/layout"
 import axiosInstance from "@/service/axios"
 import { isAuthenticated } from "@/service/auth/auth.helper"
@@ -51,7 +52,7 @@ watch(
         isActiveMenu.value = newVal === itemKey.value || newVal.startsWith(itemKey.value + "-")
     }
 )
-const user = ref(JSON.parse(localStorage.getItem("user") || "null"))
+const user = useCurrentUser()
 const isSuperAdmin = computed(() => !!user.value?.isSuperAdmin)
 
 const { data: ordersData, isSuccess: isOrdersSuccess } = useQuery({

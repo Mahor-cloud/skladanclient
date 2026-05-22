@@ -3,6 +3,7 @@
  * Copyright 2026 Lord_mahor
  * Licensed under Apache 2.0
  */
+import { useCurrentUser } from "@/composables/useCurrentUser"
 import router from "@/router"
 import { authService } from "@/service/auth/auth.service"
 import axiosInstance from "@/service/axios"
@@ -12,7 +13,7 @@ import { computed, onMounted, ref, watchEffect } from "vue"
 import RoleDialog from "./RoleDialog.vue"
 import UserDialog from "./UserDialog.vue"
 
-const user = ref(JSON.parse(localStorage.getItem("user") || "null"))
+const user = useCurrentUser()
 const toast = useToast()
 
 const roleId = ref(null)

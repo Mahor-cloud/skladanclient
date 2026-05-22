@@ -3,6 +3,7 @@
  * Copyright 2026 Lord_mahor
  * Licensed under Apache 2.0
  */
+import { useCurrentUser } from "@/composables/useCurrentUser"
 import axiosInstance from "@/service/axios"
 import { productService } from "@/service/products/product.service"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/vue-query"
@@ -32,7 +33,7 @@ function searchCategory(e) {
     categorySuggestions.value = q ? all.filter((c) => String(c).toLowerCase().includes(q)) : [...all]
 }
 const deleteProductDialog = ref(false)
-const currentUser = ref(JSON.parse(localStorage.getItem("user") || "null"))
+const currentUser = useCurrentUser()
 const canViewSummary = computed(() => !!currentUser.value?.role?.permissions?.includes("view_cabinet_summary"))
 const isAdmin = computed(() => currentUser.value?.role?.isSystem === true)
 const { isError, data, error, isSuccess, isFetching } = productService.getProductById(props.product)
@@ -49,6 +50,16 @@ const totalRepresentativeTarget = computed(() => {
     const row = cabinetSummary.value.find((r) => String(r.productId) === String(props.product))
     return row ? { totalBaseQty: row.totalBaseQty, usersCount: row.usersCount, totalCurrentQty: row.totalCurrentQty } : { totalBaseQty: 0, usersCount: 0, totalCurrentQty: 0 }
 })
+function surfaceMutationError(err, fallback) {
+    const payload = err?.response?.data
+    toast.add({
+        severity: "error",
+        summary: payload?.code === "ACTIVE_INVENTORY" ? "Изменение товаров запрещено" : "Ошибка",
+        detail: payload?.message || err?.message || fallback,
+        life: 7000
+    })
+}
+
 const { mutate, isPending } = useMutation({
     mutationKey: ["product", props.product],
     mutationFn: async (product) => {
@@ -63,7 +74,8 @@ const { mutate, isPending } = useMutation({
         props.product ? toast.add({ severity: "success", summary: "Успешно", detail: `${product.value.name} обновлен`, life: 3000 }) : toast.add({ severity: "success", summary: "Успешно", detail: `${product.value.name} добавлен`, life: 3000 })
         product.value = false
         emit("hideDialog")
-    }
+    },
+    onError: (err) => surfaceMutationError(err, "Не удалось сохранить товар")
 })
 
 const { mutate: deleteProduct } = useMutation({
@@ -84,7 +96,8 @@ const { mutate: deleteProduct } = useMutation({
             life: 3000
         })
         emit("hideDialog")
-    }
+    },
+    onError: (err) => surfaceMutationError(err, "Не удалось удалить товар")
 })
 
 watchEffect(() => {

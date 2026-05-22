@@ -4,6 +4,7 @@
  * Licensed under Apache 2.0
  */
 import StatusPill from "@/components/StatusPill.vue"
+import { useCurrentUser } from "@/composables/useCurrentUser"
 import axiosInstance from "@/service/axios"
 import formatTimestamp from "@/service/DateService"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/vue-query"
@@ -18,7 +19,7 @@ const newInventorizationDialog = ref(null)
 const inventorizationDialog = ref(null)
 const inventorization = ref({})
 
-const user = ref(JSON.parse(localStorage.getItem("user") || "null"))
+const user = useCurrentUser()
 
 const { isError, data, error, isSuccess, isFetching, failureCount } = useQuery({
     queryKey: ["inventorizations"],

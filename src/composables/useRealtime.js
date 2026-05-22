@@ -9,17 +9,71 @@ import Cookies from "js-cookie"
 import { onBeforeUnmount, onMounted } from "vue"
 
 const KEY_MAP = [
-    { prefix: "order", keys: ["orders", "order", "orderShortages", "products", "cabinet-merged", "cabinet-orders-summary", "cabinet-summary", "cabinet-all"] },
+    {
+        prefix: "order",
+        keys: [
+            "orders",
+            "order",
+            "orderShortages",
+            "products",
+            "product",
+            "products-for-statistics",
+            "statistics",
+            "cabinet-merged",
+            "cabinet-orders-summary",
+            "cabinet-summary",
+            "cabinet-all"
+        ]
+    },
 
-    { prefix: "purchase", keys: ["purchases", "products"] },
-    { prefix: "inventory", keys: ["inventory", "products"] },
-    { prefix: "product", keys: ["products"] },
-    { prefix: "user", keys: ["users"] },
-    { prefix: "role", keys: ["roles"] },
+    {
+        prefix: "purchase",
+        keys: [
+            "purchases",
+            "purchaseOrder",
+            "products",
+            "product",
+            "products-for-statistics",
+            "statistics"
+        ]
+    },
+    {
+        prefix: "inventory",
+        keys: [
+            "inventory",
+            "inventorizations",
+            "inventorization",
+            "products",
+            "product",
+            "products-for-statistics",
+            "statistics"
+        ]
+    },
+    {
+        prefix: "product",
+        keys: ["products", "product", "products-for-statistics", "statistics"]
+    },
+    {
+        prefix: "user",
+        keys: ["users", "user", "users-for-statistics", "statistics"]
+    },
+    {
+        prefix: "role",
+        keys: ["roles", "role", "users", "user", "users-for-statistics"]
+    },
 
     { prefix: "message", keys: ["msgs"] },
 
-    { prefix: "cabinet", keys: ["cabinet-merged", "cabinet-orders-summary", "cabinet-summary", "cabinet-all"] }
+    {
+        prefix: "cabinet",
+        keys: [
+            "cabinet-merged",
+            "cabinet-orders-summary",
+            "cabinet-summary",
+            "cabinet-all",
+            "cabinet-status"
+        ]
+    }
 ]
 
 const FLUSH_DELAY = 400

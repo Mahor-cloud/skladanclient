@@ -3,6 +3,7 @@
  * Copyright 2026 Lord_mahor
  * Licensed under Apache 2.0
  */
+import { useCurrentUser } from "@/composables/useCurrentUser"
 import axiosInstance from "@/service/axios"
 import formatTimestamp from "@/service/DateService"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/vue-query"
@@ -34,7 +35,7 @@ const reasonRequired = ref(false)
 const headerMessage = ref("")
 const footerMessage = ref("")
 const statusMessage = ref("")
-const user = ref(JSON.parse(localStorage.getItem("user") || "null"))
+const user = useCurrentUser()
 
 const canViewMessages = computed(() => !!user.value?.role?.permissions?.includes("view-messages"))
 
@@ -59,8 +60,9 @@ const { data, isSuccess } = useQuery({
     queryKey: ["order", props.order],
     queryFn: async () => await axiosInstance.get(`/orders/${props.order}`),
     refetchOnWindowFocus: true,
+    refetchOnMount: "always",
     select: (data) => data.data,
-    staleTime: 1000 * 60 * 5,
+    staleTime: 0,
     refetchInterval: 1000 * 60 * 5
 })
 const { data: shortagesData } = useQuery({

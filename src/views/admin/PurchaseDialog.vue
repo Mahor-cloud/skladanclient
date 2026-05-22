@@ -301,10 +301,12 @@ function commitActiveField() {
 
 function handleUpdatePurchaseOrder(isCreated, isPaid, partialCompleted, isCompleted) {
     commitActiveField()
-    if (!purchaseOrder.value.isCreated && isCreated) {
-        purchaseOrder.value.items = purchaseOrder.value.items.filter((item) => item.buyQuantity > 0 && item.confirmedQuantity == 0)
-    }
-    if (purchaseOrder.value.items.length == 0) {
+    const sourceItems = purchaseOrder.value.items || []
+    const isFinalizingCreate = !purchaseOrder.value.isCreated && isCreated
+    const itemsForPayload = isFinalizingCreate
+        ? sourceItems.filter((item) => item.buyQuantity > 0 && item.confirmedQuantity == 0)
+        : sourceItems
+    if (itemsForPayload.length == 0) {
         return emit("hidePurchaseOrderDialog")
     }
     const payload = {
@@ -312,7 +314,7 @@ function handleUpdatePurchaseOrder(isCreated, isPaid, partialCompleted, isComple
         isPaid,
         partialCompleted,
         isCompleted,
-        items: purchaseOrder.value.items.map((item) => ({
+        items: itemsForPayload.map((item) => ({
             product: item._id,
             quantity: Number(item.buyQuantity) || 0,
             confirmedQuantity: Number(item.confirmedQuantity) || 0

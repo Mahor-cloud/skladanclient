@@ -544,13 +544,13 @@ async function printInvoice() {
                         @click="saveEdits"
                     />
                     <Button
-                        v-if="!editMode && !order.isCompleted && (orderCreator || (user.isAdmin && user.role.permissions.includes('edit_orders')))"
+                        v-if="!editMode && ((!order.isCompleted && (orderCreator || (user.isAdmin && user.role.permissions.includes('edit_orders')))) || (order.isCompleted && isMainAdmin))"
                         severity="danger"
                         size="small"
                         variant="text"
                         icon="pi pi-times"
                         iconPos="right"
-                        label="Отменить заказ"
+                        :label="order.isCompleted ? 'Удалить заказ' : 'Отменить заказ'"
                         @click="confirmDeleteOrderDialog = true"
                     />
                     <Button
@@ -603,7 +603,8 @@ async function printInvoice() {
     <Dialog v-model:visible="confirmDeleteOrderDialog" :style="{ width: '450px' }" header="Подтвердите" :modal="true">
         <div class="flex items-center gap-4">
             <i class="pi pi-exclamation-triangle !text-3xl" />
-            <span>Вы уверенны что хотите отменить текущий заказ?</span>
+            <span v-if="order.isCompleted">Удалить завершённый заказ? Все товары из заказа вернутся на склад.</span>
+            <span v-else>Вы уверенны что хотите отменить текущий заказ?</span>
         </div>
         <template #footer>
             <Button label="Нет" severity="secondary" icon="pi pi-times" text @click="confirmDeleteOrderDialog = false" />

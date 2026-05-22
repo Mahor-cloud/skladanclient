@@ -92,7 +92,8 @@ function addProductRow() {
             buyQuantitySort: 1,
             confirmedQuantity: 0,
             receivedQuantity: 0,
-            originalBuyQty: 0
+            originalBuyQty: 0,
+            isNew: true
         }
     ]
     selectedAddProduct.value = null
@@ -400,7 +401,7 @@ function formatCurrency(value) {
                 <template #header>Заказ</template>
                 <template #body="slotProps">
                     <div class="grid grid-cols-3 gap-3 items-center justify-between max-w-24 sm:max-w-32">
-                        <div v-if="purchaseOrder.isCreated" class="flex items-center">
+                        <div v-if="purchaseOrder.isCreated && !slotProps.data.isNew" class="flex items-center">
                             <span>{{ slotProps.data.buyQuantity }}</span>
                         </div>
                         <div v-else-if="!purchaseOrder.isCompleted" class="flex items-center">
@@ -456,6 +457,7 @@ function formatCurrency(value) {
                 <div v-if="props.editable || props.approvePayment" class="flex justify-end gap-4 my-3 flex-wrap">
                     <Button v-if="props.editable && !purchaseOrder.isCreated" label="Автозаполнить до целей" icon="pi pi-bolt" severity="help" outlined v-tooltip.top="'Заполнить количество = цель − доступно (склад минус активные заказы)'" @click="autofillToTargets" />
                     <Button v-if="props.editable && !purchaseOrder.isPaid" label="Удалить" icon="pi pi-trash" severity="danger" @click="confirmDeleteDialog = true" />
+                    <Button v-if="props.editable && !purchaseOrder.isCompleted && !purchaseOrder.isPaid" label="Сохранить" icon="pi pi-save" severity="secondary" @click="handleUpdatePurchaseOrder(purchaseOrder.isCreated, false, false, false)" />
                     <Button v-if="props.editable && !purchaseOrder.isCreated" label="Создать" icon="pi pi-check" severity="success" @click="handleUpdatePurchaseOrder(true, false, false, false)" />
                     <Button v-if="!purchaseOrder.isPaid && purchaseOrder.isCreated && props.approvePayment" label="Оплатить" icon="pi pi-check" severity="success" @click="confirmPaidDialog = true" />
                     <template v-if="props.editable && purchaseOrder.isCreated && purchaseOrder.isPaid && !purchaseOrder.isCompleted">

@@ -67,11 +67,14 @@ const {
     refetchInterval: 1000 * 60 * 5
 })
 
+const canViewMessages = computed(() => !!user.value?.role?.permissions?.includes("view-messages"))
+
 const { data: msgsData } = useQuery({
     queryKey: ["msgs"],
     queryFn: async () => await axiosInstance.get("/database/msg"),
     select: (data) => data.data || {},
-    staleTime: 1000 * 60 * 5
+    staleTime: 1000 * 60 * 5,
+    enabled: canViewMessages
 })
 
 const targetWarehouseValue = computed(() => Number(msgsData.value?.targetWarehouseValue) || 0)

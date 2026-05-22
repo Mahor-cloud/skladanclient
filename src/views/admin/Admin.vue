@@ -79,12 +79,15 @@ const { data: usersData, isSuccess: isUsersSuccess } = useQuery({
     refetchInterval: 1000 * 60 * 5
 })
 
+const canViewMessages = computed(() => !!user.value?.role?.permissions?.includes("view-messages"))
+
 const { data: msgsData, isSuccess: isMsgsSuccess } = useQuery({
     queryKey: ["msgs"],
     queryFn: async () => await axiosInstance.get("/database/msg"),
     select: (data) => data.data || { paymentMessage: "", receiveMessage: "" },
     staleTime: 1000 * 60 * 5,
-    refetchInterval: 1000 * 60 * 5
+    refetchInterval: 1000 * 60 * 5,
+    enabled: canViewMessages
 })
 
 const { mutate: updatePaymentMessage } = useMutation({

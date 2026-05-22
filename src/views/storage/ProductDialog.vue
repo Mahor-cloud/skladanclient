@@ -34,7 +34,7 @@ function searchCategory(e) {
 const deleteProductDialog = ref(false)
 const currentUser = ref(JSON.parse(localStorage.getItem("user") || "null"))
 const canViewSummary = computed(() => !!currentUser.value?.role?.permissions?.includes("view_cabinet_summary"))
-const isAdmin = computed(() => !!currentUser.value?.isAdmin)
+const isAdmin = computed(() => currentUser.value?.role?.isSystem === true)
 const { isError, data, error, isSuccess, isFetching } = productService.getProductById(props.product)
 
 const { data: cabinetSummary } = useQuery({

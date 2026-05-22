@@ -52,7 +52,7 @@ const _user = (() => {
     }
 })()
 const _perms = _user?.role?.permissions || []
-const canExceedTarget = !!_user?.isAdmin || _perms.includes("approve_target_exceed")
+const canExceedTarget = _user?.role?.isSystem === true || _perms.includes("approve_target_exceed")
 const targetExceedDialog = ref(false)
 
 function targetCap(row) {
@@ -362,8 +362,18 @@ function formatCurrency(value) {
                 <template #body="{ data }">
                     <span>{{ data.category }}</span>
                 </template>
-                <template #filter="{ filterModel }">
-                    <MultiSelect style="max-width: 200px" v-model="filterModel.value" :options="categories" showClear optionLabel="category" optionValue="category" placeholder="Все">
+                <template #filter="{ filterModel, applyFilter }">
+                    <MultiSelect
+                        style="max-width: 200px"
+                        appendTo="self"
+                        v-model="filterModel.value"
+                        :options="categories"
+                        showClear
+                        optionLabel="category"
+                        optionValue="category"
+                        placeholder="Все"
+                        @change="applyFilter"
+                    >
                         <template #option="slotProps">
                             <div class="flex items-center">
                                 <span>{{ slotProps.option.category }}</span>

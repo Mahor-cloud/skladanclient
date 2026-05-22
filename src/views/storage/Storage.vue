@@ -280,8 +280,18 @@ function hideBuyDialog() {
                         <Skeleton v-if="data._skeleton" width="60%" height="1rem" />
                         <span v-else>{{ data.category }}</span>
                     </template>
-                    <template #filter="{ filterModel }">
-                        <MultiSelect style="max-width: 200px" v-model="filterModel.value" :options="categories" showClear optionLabel="category" optionValue="category" placeholder="Все">
+                    <template #filter="{ filterModel, applyFilter }">
+                        <MultiSelect
+                            style="max-width: 200px"
+                            appendTo="self"
+                            v-model="filterModel.value"
+                            :options="categories"
+                            showClear
+                            optionLabel="category"
+                            optionValue="category"
+                            placeholder="Все"
+                            @change="applyFilter"
+                        >
                             <template #option="slotProps">
                                 <div class="flex items-center">
                                     <span>{{ slotProps.option.category }}</span>

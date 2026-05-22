@@ -275,7 +275,7 @@ function hideBuyDialog() {
                         <span v-else>{{ formatCurrency(slotProps.data.price) }}</span>
                     </template>
                 </Column>
-                <Column header="Вид" filterField="category" :showFilterMatchModes="false" filterMenuStyle="{ width: '14rem' }" style="padding: 0.3rem">
+                <Column header="Вид" field="category" filterField="category" :showFilterMatchModes="false" filterMenuStyle="{ width: '14rem' }" style="padding: 0.3rem">
                     <template #body="{ data }">
                         <Skeleton v-if="data._skeleton" width="60%" height="1rem" />
                         <span v-else>{{ data.category }}</span>

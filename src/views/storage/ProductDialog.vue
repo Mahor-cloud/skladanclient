@@ -34,6 +34,7 @@ function searchCategory(e) {
 const deleteProductDialog = ref(false)
 const currentUser = ref(JSON.parse(localStorage.getItem("user") || "null"))
 const canViewSummary = computed(() => !!currentUser.value?.role?.permissions?.includes("view_cabinet_summary"))
+const isAdmin = computed(() => !!currentUser.value?.isAdmin)
 const { isError, data, error, isSuccess, isFetching } = productService.getProductById(props.product)
 
 const { data: cabinetSummary } = useQuery({
@@ -167,15 +168,17 @@ const saveProduct = () => {
             </div>
 
             <div>
-                <label for="targetQty" class="block font-bold mb-2">Цель</label>
+                <label for="targetQty" class="block font-bold mb-2">Цель закупки</label>
                 <InputText
                     type="number"
                     id="targetQty"
                     v-model.number="product.targetQty"
                     :placeholder="'0 — без ограничения'"
+                    :disabled="!isAdmin"
                     fluid
                 />
-                <small class="text-surface-500">Если 0 — нет ограничения. Кладовщик не сможет заказать больше — потребуется подтверждение администратора.</small>
+                <small v-if="isAdmin" class="text-surface-500">Если 0 — нет ограничения. Цель ограничивает закупку: кладовщик не сможет заказать в закупке больше цели без подтверждения администратора.</small>
+                <small v-else class="text-surface-500">Цель закупки задаёт только главный администратор компании.</small>
             </div>
 
             <div v-if="canViewSummary && totalRepresentativeTarget" class="rep-summary">

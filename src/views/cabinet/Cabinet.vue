@@ -7,7 +7,7 @@ import axiosInstance from "@/service/axios"
 import { FilterMatchMode } from "@primevue/core/api"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/vue-query"
 import { useToast } from "primevue/usetoast"
-import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue"
+import { computed, onBeforeUnmount, ref, watch } from "vue"
 import AddCabinetItemDialog from "./AddCabinetItemDialog.vue"
 
 const toast = useToast()
@@ -17,12 +17,31 @@ const user = ref(JSON.parse(localStorage.getItem("user") || "null"))
 const addDialog = ref(false)
 const editingItem = ref(null)
 const firstVisitDialog = ref(false)
-const cabinetReady = ref(localStorage.getItem("cabinet-onboarded") === "1")
-const setupSkipped = ref(localStorage.getItem("cabinet-skipped") === "1")
 
 const filters = ref({
     global: { value: null, matchMode: FilterMatchMode.CONTAINS }
 })
+
+const { data: cabinetStatus } = useQuery({
+    queryKey: ["cabinet-status"],
+    queryFn: async () => (await axiosInstance.get("/cabinet/status")).data,
+    staleTime: Infinity
+})
+
+const { mutate: markCabinetInit } = useMutation({
+    mutationFn: async () => (await axiosInstance.post("/cabinet/init")).data,
+    onSuccess: () => queryClient.setQueryData(["cabinet-status"], { initialized: true })
+})
+
+watch(
+    cabinetStatus,
+    (val) => {
+        if (val && val.initialized === false) {
+            firstVisitDialog.value = true
+        }
+    },
+    { immediate: true }
+)
 
 const { data: rows, isSuccess, isFetching, refetch } = useQuery({
     queryKey: ["cabinet-merged"],
@@ -307,31 +326,14 @@ function confirmDelete() {
 }
 
 function setupCabinet() {
-    localStorage.setItem("cabinet-onboarded", "1")
-    localStorage.removeItem("cabinet-skipped")
-    cabinetReady.value = true
-    setupSkipped.value = false
+    markCabinetInit()
     firstVisitDialog.value = false
 }
 
 function skipCabinet() {
-    localStorage.setItem("cabinet-skipped", "1")
-    setupSkipped.value = true
+    markCabinetInit()
     firstVisitDialog.value = false
 }
-
-onMounted(() => {
-    if (!cabinetReady.value && !setupSkipped.value) {
-        firstVisitDialog.value = true
-    }
-})
-
-watch(rows, (val) => {
-    if (Array.isArray(val) && val.some((r) => r.cabinetItemId) && !cabinetReady.value) {
-        localStorage.setItem("cabinet-onboarded", "1")
-        cabinetReady.value = true
-    }
-})
 </script>
 
 <template>

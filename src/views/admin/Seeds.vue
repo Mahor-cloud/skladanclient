@@ -192,13 +192,13 @@ const filteredProducts = computed(() => {
         <section v-if="isSuccess" class="seeds-section card">
             <div class="section-header">
                 <h2>Товары в шаблоне ({{ localProducts.length }})</h2>
-                <div class="flex gap-2 items-center">
+                <div class="flex flex-wrap gap-2 items-center">
                     <IconField>
                         <InputIcon><i class="pi pi-search" /></InputIcon>
-                        <InputText v-model="productSearch" placeholder="Поиск..." style="min-width: 14rem" />
+                        <InputText v-model="productSearch" placeholder="Поиск..." style="width: 11rem; max-width: 100%" />
                     </IconField>
                     <Button label="Добавить" icon="pi pi-plus" size="small" severity="secondary" outlined @click="addProduct" />
-                    <Button label="Сохранить товары" icon="pi pi-check" :loading="isSavingProducts" :disabled="isSavingProducts" severity="success" @click="saveProducts()" />
+                    <Button label="Сохранить товары" icon="pi pi-check" size="small" :loading="isSavingProducts" :disabled="isSavingProducts" severity="success" @click="saveProducts()" />
                 </div>
             </div>
 

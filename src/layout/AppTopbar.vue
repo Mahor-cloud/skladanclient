@@ -113,9 +113,6 @@ const { data: inCart, isSuccess: isCartSuccess } = useQuery({
 
 const { isError, data, error, isSuccess, isFetching } = productService.getProducts({ enabled: !isSuperAdmin.value })
 
-const targetExceedDialog = ref(false)
-const targetExceedDetails = ref(null)
-
 const { mutate: createOrderMutate, isPending: isOrderCreating } = useMutation({
     mutationKey: ["create_order"],
     mutationFn: async (data) => await axiosInstance.post("/orders", data),
@@ -143,29 +140,11 @@ const { mutate: createOrderMutate, isPending: isOrderCreating } = useMutation({
                 detail: payload.message || "Идёт инвентаризация — создание заказов невозможно. Свяжитесь с администратором.",
                 life: 8000
             })
-        } else if (payload?.code === "TARGET_EXCEED") {
-            targetExceedDetails.value = payload
-            targetExceedDialog.value = true
         } else {
             toast.add({ severity: "error", summary: "Ошибка", detail: payload?.message || err.message, life: 5000 })
         }
     }
 })
-
-const isAdmin = computed(() => {
-    const u = currentUser.value
-    return !!(u?.isAdmin || u?.role?.permissions?.includes("approve_target_exceed"))
-})
-
-async function approveAndRetry() {
-    if (await revalidateCartAgainstStock()) return
-    const payload = cart.value
-        .filter((product) => product.buyQuantity > 0)
-        .map((product) => ({ product: product._id, quantity: product.buyQuantity }))
-    payload.push({ __approveTargetExceed: true })
-    createOrderMutate(payload)
-    targetExceedDialog.value = false
-}
 
 watchEffect(() => {
     if (isSuccess.value) {
@@ -235,7 +214,6 @@ async function revalidateCartAgainstStock() {
             queryClient.invalidateQueries({ queryKey: ["cartAmount"] })
             queryClient.invalidateQueries({ queryKey: ["products"] })
             confirmBuyDialog.value = false
-            targetExceedDialog.value = false
             openCart()
             toast.add({
                 severity: "warn",
@@ -374,24 +352,6 @@ function logoutHandler() {
         <template #footer>
             <Button label="Нет" icon="pi pi-times" text @click="confirmBuyDialog = false" :disabled="isOrderCreating" />
             <Button label="Да" icon="pi pi-check" @click="createOrder" :loading="isOrderCreating" :disabled="isOrderCreating" />
-        </template>
-    </Dialog>
-    <Dialog v-model:visible="targetExceedDialog" :style="{ width: '450px' }" :breakpoints="{ '768px': '100vw' }" header="Превышение цели" :modal="true">
-        <div v-if="targetExceedDetails" class="flex items-start gap-4">
-            <i class="pi pi-exclamation-triangle !text-3xl" style="color: #f59e0b" />
-            <div>
-                <p>
-                    По товару <b>{{ targetExceedDetails.productName }}</b> установлена цель
-                    <b>{{ targetExceedDetails.targetQty }}</b>, а вы пытаетесь заказать
-                    <b>{{ targetExceedDetails.requested }}</b>.
-                </p>
-                <p v-if="!isAdmin">Превышение цели может одобрить только администратор. Уменьшите количество или согласуйте с админом.</p>
-                <p v-else>Подтвердите создание заказа с превышением цели?</p>
-            </div>
-        </div>
-        <template #footer>
-            <Button label="Закрыть" icon="pi pi-times" text @click="targetExceedDialog = false" />
-            <Button v-if="isAdmin" label="Подтвердить и заказать" icon="pi pi-check" severity="warn" @click="approveAndRetry" />
         </template>
     </Dialog>
     <Dialog v-model:visible="goToOrderDialog" :style="{ width: '450px' }" :breakpoints="{ '768px': '100vw' }" header="Заказ создан" :modal="true">

@@ -92,6 +92,21 @@ async function refreshCurrentUser() {
     }
 }
 
+function handleCompanyShutdown() {
+    try {
+        Cookies.remove("accessToken")
+        Cookies.remove("refreshToken")
+        localStorage.removeItem("user")
+    } catch {
+
+    }
+    try {
+        window.location.replace("/#/auth/login")
+    } catch {
+
+    }
+}
+
 function enqueueInvalidation(type) {
     pendingTypes.add(type)
     if (flushTimer) return
@@ -140,6 +155,10 @@ export function useRealtime() {
                 const payload = JSON.parse(e.data)
                 const type = payload && payload.type
                 if (!type || type === "ping" || type === "noop") return
+                if (type === "company-disabled" || type === "company-removed") {
+                    handleCompanyShutdown()
+                    return
+                }
                 enqueueInvalidation(type)
             } catch {
 

@@ -143,39 +143,24 @@ watchEffect(() => {
                 : "Заказ ожидает подтверждения оплаты казначеем"
     }
 })
-const orderCreator = computed({
-    get() {
-        return order.value?.user?._id === user.value._id
-    }
-})
-const approvePaymentRole = computed({
-    get() {
-        return user.value?.isAdmin || user.value?.role?.permissions?.includes("approve-payment")
-    }
-})
+const orderCreator = computed(() => order.value?.user?._id === user.value?._id)
+const isStaff = computed(() => !!user.value?.isAdmin)
+const isMainAdmin = computed(() => user.value?.role?.isSystem === true)
+const hasEditOrdersPerm = computed(() => !!user.value?.role?.permissions?.includes("edit_orders"))
+const hasApprovePaymentPerm = computed(() => !!user.value?.role?.permissions?.includes("approve-payment"))
 
-const canMarkPaid = computed(
-    () => orderCreator.value || user.value?.isAdmin || user.value?.role?.permissions?.includes("edit_orders")
-)
+const canEditOthersOrders = computed(() => isMainAdmin.value || (isStaff.value && hasEditOrdersPerm.value))
+const canApproveOthersPayment = computed(() => isMainAdmin.value || (isStaff.value && hasApprovePaymentPerm.value))
 
-const isMainAdmin = computed(
-    () => user.value?.role?.isSystem === true || user.value?.role?.name === "Admin"
-)
+const canMarkPaid = computed(() => orderCreator.value || canEditOthersOrders.value)
+const approvePaymentRole = canApproveOthersPayment
 
 const canEditItems = computed(() => {
     if (!order.value) return false
-    if (order.value.isCompleted) {
-
-        return isMainAdmin.value
-    }
-    const isOwner = orderCreator.value
-    const canEditOrdersPerm = user.value?.isAdmin || user.value?.role?.permissions?.includes("edit_orders")
-
-    if (isOwner && !order.value.isPaid) return true
-
-    if (isOwner && order.value.isPaid && !order.value.confirmedPaid) return true
-
-    if (canEditOrdersPerm) return true
+    if (order.value.isCompleted) return isMainAdmin.value
+    if (orderCreator.value && !order.value.isPaid) return true
+    if (orderCreator.value && order.value.isPaid && !order.value.confirmedPaid) return true
+    if (canEditOthersOrders.value) return true
     return false
 })
 
@@ -506,7 +491,7 @@ async function printInvoice() {
                     </Message>
                 </div>
 
-                <div v-if="!readonly && (orderCreator || user.isAdmin || approvePaymentRole || canEditItems)" class="flex flex-wrap justify-end gap-2 my-3">
+                <div v-if="!readonly && (orderCreator || canEditOthersOrders || canApproveOthersPayment)" class="flex flex-wrap justify-end gap-2 my-3">
                     <Button
                         v-if="!editMode"
                         severity="secondary"
@@ -546,7 +531,7 @@ async function printInvoice() {
                         @click="saveEdits"
                     />
                     <Button
-                        v-if="!editMode && ((!order.isCompleted && (orderCreator || (user.isAdmin && user.role.permissions.includes('edit_orders')))) || (order.isCompleted && isMainAdmin))"
+                        v-if="!editMode && ((!order.isCompleted && (orderCreator || canEditOthersOrders)) || (order.isCompleted && isMainAdmin))"
                         severity="danger"
                         size="small"
                         variant="text"
@@ -572,7 +557,7 @@ async function printInvoice() {
                         disabled
                     />
                     <Button
-                        v-if="!editMode && order.confirmedPaid && !order.isCompleted && (orderCreator || (user.isAdmin && user.role.permissions.includes('edit_orders')))"
+                        v-if="!editMode && order.confirmedPaid && !order.isCompleted && (orderCreator || canEditOthersOrders)"
                         size="small"
                         label="Завершить"
                         icon="pi pi-check"

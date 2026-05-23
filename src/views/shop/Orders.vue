@@ -178,7 +178,7 @@ function hideOrderDialog() {
                     <p v-else style="font-size: 14px">{{ formatTimestamp(slotProps.data.orderDate) }}</p>
                 </template>
             </Column>
-            <Column style="min-width: 52px; width: 52px" bodyStyle="text-align:center; padding:4px">
+            <Column frozen alignFrozen="right" style="min-width: 52px; width: 52px" bodyStyle="text-align:center; padding:4px">
                 <template #header><span class="sr-only">Действия</span></template>
                 <template #body="slotProps">
                     <Skeleton v-if="slotProps.data._skeleton" shape="circle" size="2rem" />

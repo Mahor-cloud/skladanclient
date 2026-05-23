@@ -403,23 +403,11 @@ const themeAwareOptions = computed(() => {
     }
 })
 
-function wrapChartLabel(label) {
+function truncateChartLabel(label) {
     if (typeof label !== "string") return label
     const MAX = 22
     if (label.length <= MAX) return label
-    const mid = Math.floor(label.length / 2)
-    const spaceLeft = label.lastIndexOf(" ", mid)
-    const spaceRight = label.indexOf(" ", mid + 1)
-    let breakAt = -1
-    if (spaceLeft > 0 && (mid - spaceLeft) <= (spaceRight < 0 ? 99 : spaceRight - mid)) {
-        breakAt = spaceLeft
-    } else if (spaceRight > 0) {
-        breakAt = spaceRight
-    }
-    if (breakAt < 0) return label
-    const first = label.slice(0, breakAt)
-    const second = label.slice(breakAt + 1)
-    return [first, second]
+    return label.slice(0, MAX - 1) + "…"
 }
 
 const barOptionsHorizontal = computed(() => {
@@ -456,11 +444,8 @@ const barOptionsHorizontal = computed(() => {
                     autoSkip: false,
                     crossAlign: "far",
                     callback: function (value) {
-                        return wrapChartLabel(this.getLabelForValue(value) || "")
+                        return truncateChartLabel(this.getLabelForValue(value) || "")
                     }
-                },
-                afterFit: function (scale) {
-                    scale.width = Math.max(scale.width, 140)
                 }
             }
         }
@@ -729,6 +714,8 @@ function exportCsv() {
                         </template>
                     </Column>
                     <Column
+                        frozen
+                        alignFrozen="right"
                         style="min-width: 52px; width: 52px"
                         bodyStyle="text-align:center; padding:4px"
                     >
@@ -765,6 +752,10 @@ function exportCsv() {
     flex-direction: column;
     gap: 16px;
     padding: 12px;
+    min-width: 0;
+}
+.stats-page > * {
+    min-width: 0;
 }
 .stats-header {
     display: flex;
@@ -867,6 +858,7 @@ function exportCsv() {
     display: flex;
     flex-direction: column;
     gap: 6px;
+    min-width: 0;
 }
 .kpi-card--turnover { border-left: 4px solid #0ea5e9; }
 .kpi-card--avg { border-left: 4px solid #10b981; }
@@ -912,6 +904,8 @@ function exportCsv() {
     display: flex;
     flex-direction: column;
     gap: 8px;
+    min-width: 0;
+    overflow: hidden;
 }
 .chart-title {
     margin: 0;

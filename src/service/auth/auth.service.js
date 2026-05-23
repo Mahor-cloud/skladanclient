@@ -6,17 +6,23 @@
 import Cookies from "js-cookie"
 import { queryClient } from "../queryClient"
 import { axiosClassic } from "../axios"
-import { removeTokensStorage, saveToStorage } from "./auth.helper"
+import { notifyUserChanged, removeTokensStorage, saveToStorage } from "./auth.helper"
 export const authService = {
     logout(redirect = "/auth/login") {
         removeTokensStorage()
         localStorage.removeItem("user")
         localStorage.removeItem("cart")
         queryClient.clear()
+        notifyUserChanged()
         try {
             window.location.replace(window.location.origin + "/#" + redirect)
         } catch {
             window.location.hash = "#" + redirect
+        }
+        try {
+            window.location.reload()
+        } catch {
+
         }
     },
 

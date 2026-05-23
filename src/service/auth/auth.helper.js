@@ -16,14 +16,27 @@ export const saveTokensStorage = (data) => {
     Cookies.set('refreshToken', data.refreshToken, { ...cookieDefaults, expires: 30 })
 }
 
+const dispatchUserStorageEvent = () => {
+    try {
+        window.dispatchEvent(new StorageEvent('storage', { key: 'user' }))
+    } catch {
+        const ev = new Event('storage')
+        ev.key = 'user'
+        window.dispatchEvent(ev)
+    }
+}
+
 export const saveToStorage = (data) => {
     saveTokensStorage(data)
     localStorage.setItem('user', JSON.stringify(data.user))
+    dispatchUserStorageEvent()
 }
 
 export const removeTokensStorage = () => {
     Cookies.remove('accessToken')
     Cookies.remove('refreshToken')
 }
+
+export const notifyUserChanged = dispatchUserStorageEvent
 
 export const isAuthenticated = () => !!Cookies.get('refreshToken')

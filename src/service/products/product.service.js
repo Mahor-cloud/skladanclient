@@ -17,13 +17,21 @@ const getProductById = async (id) => {
 
 export const productService = {
     getProducts(opts = {}) {
-        const { isError, data, error, isSuccess, isFetching, failureCount } = useQuery({
+        const { isError, data, error, isSuccess, isFetching, failureCount, refetch } = useQuery({
             queryKey: ["products"],
             queryFn: getProductData,
-            refetchOnWindowFocus: false,
+            refetchOnWindowFocus: true,
+            refetchOnReconnect: true,
+            refetchOnMount: "always",
             select: (data) => data.data,
             staleTime: 1000 * 60 * 5,
             refetchInterval: 1000 * 60 * 5,
+            retry: (failureCount, err) => {
+                const status = err?.response?.status
+                if (status && status >= 400 && status < 500) return false
+                return failureCount < 5
+            },
+            retryDelay: (attempt) => Math.min(1000 * 2 ** attempt, 8000),
 
             enabled: () => {
                 const o = opts.enabled
@@ -31,7 +39,7 @@ export const productService = {
                 return isAuthenticated() && base
             }
         })
-        return { isError, data, error, isSuccess, isFetching, failureCount }
+        return { isError, data, error, isSuccess, isFetching, failureCount, refetch }
     },
 
     getProductById(id) {

@@ -33,7 +33,7 @@ const companiesSkeleton = Array.from({ length: 4 }, (_, i) => ({ _id: `sk-${i}`,
 const tableRows = computed(() => (isSuccess.value && companies.value ? companies.value : companiesSkeleton))
 
 async function loadAdmins(companyId) {
-    const { data } = await axiosInstance.get(`/companies/${companyId}/users`)
+    const { data } = await axiosInstance.get(`/companies/${companyId}/admins`)
     adminsByCompany.value = { ...adminsByCompany.value, [companyId]: data }
     return data
 }

@@ -86,7 +86,7 @@ const { data, isFetching, isSuccess, refetch } = useQuery({
     queryKey,
     queryFn: async () =>
         (await axiosInstance.get(`/statistics/dashboard?${appliedQueryString.value}`)).data,
-    staleTime: 30_000,
+    staleTime: 1000 * 60 * 5,
     placeholderData: (previous) => previous,
 
     retry: (failureCount, error) => {

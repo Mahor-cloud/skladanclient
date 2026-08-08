@@ -54,14 +54,18 @@ const handleLogin = async () => {
         }
     } catch (e) {
         const status = e?.response?.status
-        const serverMsg = e?.response?.data?.message
+        const raw = e?.response?.data?.message
+        const serverMsg = Array.isArray(raw) ? raw.filter(Boolean).join('. ') : typeof raw === 'string' ? raw : ''
         if (status === 429) {
             errorMessage.value = 'Слишком много попыток. Подождите минуту и попробуйте снова.'
         } else if (status === 401) {
-            const ru = typeof serverMsg === 'string' && /[А-Яа-яЁё]/.test(serverMsg) ? serverMsg : null
-            errorMessage.value = ru || 'Неверный логин или пароль'
+            errorMessage.value = /[А-Яа-яЁё]/.test(serverMsg) ? serverMsg : 'Неверный логин или пароль'
+        } else if (serverMsg) {
+            errorMessage.value = serverMsg
+        } else if (!e?.response) {
+            errorMessage.value = 'Нет связи с сервером. Проверьте интернет и попробуйте снова.'
         } else {
-            errorMessage.value = (typeof serverMsg === 'string' && serverMsg) || 'Ошибка входа'
+            errorMessage.value = `Ошибка входа (код ${status || '?'})`
         }
     } finally {
         submitting.value = false

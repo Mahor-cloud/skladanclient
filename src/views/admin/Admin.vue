@@ -308,11 +308,12 @@ const subscribeToPush = async () => {
             }
         }
 
-        const vapidKey = import.meta.env.VITE_VAPID_PUBLIC_KEY
-        if (!vapidKey) {
-            toast.add({ severity: "error", summary: "Ошибка конфигурации", detail: "VAPID_PUBLIC_KEY не настроен на клиенте.", life: 6000 })
+        const { data: vapid } = await axiosInstance.get("/change-history/vapid-public-key")
+        if (!vapid?.publicKey) {
+            toast.add({ severity: "error", summary: "Ошибка конфигурации", detail: "VAPID-ключ не настроен на сервере.", life: 6000 })
             return
         }
+        const appKey = urlBase64ToUint8Array(vapid.publicKey)
 
         let registration = await navigator.serviceWorker.getRegistration()
         if (!registration) {
@@ -330,10 +331,16 @@ const subscribeToPush = async () => {
         registration = await Promise.race([readyPromise, timeoutPromise])
 
         let subscription = await registration.pushManager.getSubscription()
+        // A subscription made with an old key never receives pushes — recreate it.
+        const currentKey = subscription?.options?.applicationServerKey
+        if (subscription && (!currentKey || new Uint8Array(currentKey).join() !== appKey.join())) {
+            await subscription.unsubscribe()
+            subscription = null
+        }
         if (!subscription) {
             subscription = await registration.pushManager.subscribe({
                 userVisibleOnly: true,
-                applicationServerKey: urlBase64ToUint8Array(vapidKey)
+                applicationServerKey: appKey
             })
         }
         const subJson = subscription.toJSON()

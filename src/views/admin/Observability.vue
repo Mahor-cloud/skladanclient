@@ -681,8 +681,7 @@ function fmtRange(s, digits = 1) {
 function rangeLabel(h) {
     if (h === 24) return "24 часа"
     if (h === 168) return "7 дней"
-    if (h === 720) return "30 дней"
-    if (h === 2160) return "90 дней"
+    if (h === 336) return "14 дней"
     return h + " ч"
 }
 
@@ -849,8 +848,7 @@ function showMetricInfo(key, event) {
                     :options="[
                         { label: '24 ч', value: 24 },
                         { label: '7 дн', value: 168 },
-                        { label: '30 дн', value: 720 },
-                        { label: '90 дн', value: 2160 }
+                        { label: '14 дн', value: 336 }
                     ]"
                     optionLabel="label"
                     optionValue="value"
@@ -1071,7 +1069,7 @@ function showMetricInfo(key, event) {
                 </ul>
                 <h4 class="mt-3">Правила срабатывания (за выбранный период истории)</h4>
                 <p class="text-xs mb-2">
-                    Подсветка считается строго по выбранному окну (24 ч / 7 дн / 30 дн / 90 дн). Старые проблемы вне
+                    Подсветка считается строго по выбранному окну (24 ч / 7 дн / 14 дн). Старые проблемы вне
                     окна не светятся. Конфиг хоста определяется <b>автоматически</b> — см. шапку («host N MB RAM, бюджет
                     backend M MB»). Пороги ниже физические или относительные к бюджету.
                 </p>
@@ -1131,9 +1129,9 @@ function showMetricInfo(key, event) {
 
             <div class="mt-5 text-sm text-muted-color">
                 <p>
-                    <b>Min / Avg / Max</b> вычисляются по всем snapshot-точкам в выбранном окне (24 ч / 7 дн / 30 дн / 90 дн).
+                    <b>Min / Avg / Max</b> вычисляются по всем snapshot-точкам в выбранном окне (24 ч / 7 дн / 14 дн).
                     «Пик за 5 минут» — максимум между snapshot-точками: показывает короткие всплески, которые не успели
-                    попасть в момент замера. Хранение в БД: TTL 90 дней (~40 MB).
+                    попасть в момент замера. Хранение в БД: TTL 14 дней.
                 </p>
                 <p>
                     Сырой Prometheus-формат: <code>GET /api/observability/metrics</code> (только super-admin).

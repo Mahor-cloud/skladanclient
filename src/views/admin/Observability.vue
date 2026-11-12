@@ -199,6 +199,7 @@ const rssThresholds = computed(() => {
     }
 })
 
+// History points carry only the metrics listed in HISTORY_METRICS (skladan snapshot.service.ts) — add new ones there.
 const historyPoints = computed(() => historyData.value?.points || [])
 
 const rssStats = computed(() =>

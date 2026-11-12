@@ -47,9 +47,12 @@ const statuses = computed({
     }
 })
 
+// By default: unfinished + last 3 months; "Показать все" loads the full list.
+const showAll = ref(false)
+const RECENT_MS = 90 * 24 * 60 * 60 * 1000
 const { data, isSuccess, isFetching, failureCount } = useQuery({
-    queryKey: ["orders"],
-    queryFn: async () => await axiosInstance.get("/orders"),
+    queryKey: ["orders", computed(() => (showAll.value ? "all" : "recent"))],
+    queryFn: async ({ queryKey }) => await axiosInstance.get("/orders", { params: queryKey[1] === "all" ? {} : { since: Date.now() - RECENT_MS } }),
     refetchOnWindowFocus: true,
     select: (data) => data.data,
     staleTime: 1000 * 60 * 5,
@@ -134,7 +137,10 @@ function hideOrderDialog() {
         >
             <template #header>
                 <div class="flex flex-wrap gap-4 items-center justify-between">
-                    <Button type="button" icon="pi pi-filter-slash" aria-label="Сбросить фильтры" outlined @click="clearFilter()" />
+                    <div class="flex gap-2">
+                        <Button type="button" icon="pi pi-filter-slash" aria-label="Сбросить фильтры" outlined @click="clearFilter()" />
+                        <Button v-if="!showAll" type="button" icon="pi pi-history" label="Показать все" outlined @click="showAll = true" />
+                    </div>
                     <div style="flex-grow: 1; max-width: 12rem" class="justify-end inline-flex">
                         <IconField>
                             <InputIcon>
@@ -143,6 +149,7 @@ function hideOrderDialog() {
                             <InputText style="max-width: 13rem; font-size: 16px" v-model="filters['global'].value" placeholder="Поиск..." />
                         </IconField>
                     </div>
+                    <small v-if="!showAll" class="w-full text-muted-color">Показаны незавершённые и за 3 месяца</small>
                 </div>
             </template>
             <Column field="orderNumber" filterField="orderNumber" header="№" style="padding: 0.1rem; min-width: 48px">

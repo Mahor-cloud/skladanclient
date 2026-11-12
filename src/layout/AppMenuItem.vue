@@ -56,8 +56,8 @@ const user = useCurrentUser()
 const isSuperAdmin = computed(() => !!user.value?.isSuperAdmin)
 
 const { data: ordersData, isSuccess: isOrdersSuccess } = useQuery({
-    queryKey: ["orders"],
-    queryFn: async () => await axiosInstance.get("/orders"),
+    queryKey: ["orders", "active"],
+    queryFn: async () => await axiosInstance.get("/orders", { params: { active: 1 } }),
     refetchOnWindowFocus: true,
     select: (data) => data.data,
     staleTime: 1000 * 60 * 5,

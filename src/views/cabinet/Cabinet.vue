@@ -8,7 +8,7 @@ import axiosInstance from "@/service/axios"
 import { FilterMatchMode } from "@primevue/core/api"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/vue-query"
 import { useToast } from "primevue/usetoast"
-import { computed, onBeforeUnmount, ref, watch } from "vue"
+import { computed, onBeforeUnmount, reactive, ref, watch } from "vue"
 import AddCabinetItemDialog from "./AddCabinetItemDialog.vue"
 
 const toast = useToast()
@@ -63,30 +63,50 @@ const skeletonRows = Array.from({ length: 12 }, (_, i) => ({
 }))
 const needSnapshot = ref(new Map())
 
+// The table gets the server rows as they are: a keystroke must not rebuild every row
+// (that re-rendered all 50 rows, ~1 s per tap on a phone). Edited values live in localEdits.
+// resortTick hands the table a new array (so it sorts again) after a save changed a sorted column.
+const resortTick = ref(0)
 const tableRows = computed(() => {
-    if (!isSuccess.value || !rows.value) return skeletonRows
-    const edits = localEdits.value
-    const snap = needSnapshot.value
-    return rows.value.map((r) => {
-        const key = r.productId || r.cabinetItemId
-        const base = edits.has(`${key}-baseQty`) ? edits.get(`${key}-baseQty`) : r.baseQty || 0
-        const curr = edits.has(`${key}-currentQty`) ? edits.get(`${key}-currentQty`) : r.currentQty || 0
-
-        const inOrder = r.inOrderQty || 0
-        const need = Math.max(0, base - curr - inOrder)
-        return { ...r, need, needSort: snap.has(key) ? snap.get(key) : need }
-    })
+    void resortTick.value
+    return isSuccess.value && rows.value ? rows.value.slice() : skeletonRows
 })
 
-function onCabinetSort() {
-    const edits = localEdits.value
+const rowKey = (row) => row.productId || row.cabinetItemId
+
+function needOf(row) {
+    const key = rowKey(row)
+    const base = localEdits.has(`${key}-baseQty`) ? localEdits.get(`${key}-baseQty`) : row.baseQty || 0
+    const curr = localEdits.has(`${key}-currentQty`) ? localEdits.get(`${key}-currentQty`) : row.currentQty || 0
+    return Math.max(0, base - curr - (row.inOrderQty || 0))
+}
+
+// "Нужно" sorts by the value it had when the header was clicked, so rows don't jump while typing.
+function needSortOf(row) {
+    const snap = needSnapshot.value
+    const key = rowKey(row)
+    return snap.has(key) ? snap.get(key) : needOf(row)
+}
+
+let sortedBy = null
+let resortPending = false
+
+// Saves now happen while a quantity field still has focus. Re-sorting then would move the row
+// under the finger (the next tap lands on another product), so it waits until focus leaves them.
+function resortWhenIdle() {
+    if (!resortPending) return
+    setTimeout(() => {
+        if (resortPending && !document.activeElement?.closest(".cabinet-qty")) {
+            resortPending = false
+            resortTick.value++
+        }
+    }, BLUR_DEBOUNCE_MS)
+}
+
+function onCabinetSort(e) {
+    sortedBy = e?.sortField
     const m = new Map()
-    for (const r of rows.value || []) {
-        const key = r.productId || r.cabinetItemId
-        const base = edits.has(`${key}-baseQty`) ? edits.get(`${key}-baseQty`) : r.baseQty || 0
-        const curr = edits.has(`${key}-currentQty`) ? edits.get(`${key}-currentQty`) : r.currentQty || 0
-        m.set(key, Math.max(0, base - curr - (r.inOrderQty || 0)))
-    }
+    for (const r of rows.value || []) m.set(rowKey(r), needOf(r))
     needSnapshot.value = m
 }
 
@@ -98,42 +118,71 @@ const { mutate: deleteItem } = useMutation({
     }
 })
 
+// A hung request (phone switching networks) must fail, or the row's saves would wait for it forever.
+const SAVE_TIMEOUT_MS = 15_000
+
 const { mutate: saveItem } = useMutation({
     mutationFn: async (payload) => {
         if (payload._existingId) {
-            return await axiosInstance.put(`/cabinet/${payload._existingId}`, {
-                baseQty: payload.baseQty,
-                currentQty: payload.currentQty,
-                note: payload.note
-            })
+            return await axiosInstance.put(
+                `/cabinet/${payload._existingId}`,
+                {
+                    baseQty: payload.baseQty,
+                    currentQty: payload.currentQty,
+                    note: payload.note
+                },
+                { timeout: SAVE_TIMEOUT_MS }
+            )
         }
-        return await axiosInstance.post("/cabinet", {
-            product: payload.productId || undefined,
-            customName: payload.customName || undefined,
-            baseQty: payload.baseQty || 0,
-            currentQty: payload.currentQty || 0,
-            note: payload.note || ""
-        })
+        return await axiosInstance.post(
+            "/cabinet",
+            {
+                product: payload.productId || undefined,
+                customName: payload.customName || undefined,
+                baseQty: payload.baseQty || 0,
+                currentQty: payload.currentQty || 0,
+                note: payload.note || ""
+            },
+            { timeout: SAVE_TIMEOUT_MS }
+        )
     },
-    onSuccess: () => {
-        queryClient.invalidateQueries({ queryKey: ["cabinet-merged"] })
+    onSuccess: (res, variables) => {
+        // A list request sent before this save was written would bring the old value back: restart it.
+        if (queryClient.isFetching({ queryKey: ["cabinet-merged"] })) queryClient.invalidateQueries({ queryKey: ["cabinet-merged"] })
+        // The saved values go into the cached row in place, not as a new list: a new list (or a
+        // refetch) re-rendered the whole table, ~0.7 s on a phone, after every save. The SSE echo
+        // refetch then equals the cache and changes nothing. The cells re-render from localEdits below.
+        const key = variables.productId || variables._existingId
+        const saved = res.data
+        const row = queryClient.getQueryData(["cabinet-merged"])?.find((r) => rowKey(r) === key)
+        if (row) Object.assign(row, { cabinetItemId: String(saved._id), baseQty: saved.baseQty, currentQty: saved.currentQty })
+        // Sorted by the saved column: re-sort after the save, as the old refetch did.
+        if (sortedBy === "baseQty" || sortedBy === "currentQty") {
+            resortPending = true
+            resortWhenIdle()
+        }
+        // Drop local values the server now holds, so later server changes (an order replenishing
+        // the cabinet, another device) show up. A value typed since the request stays.
+        for (const f of ["baseQty", "currentQty"]) {
+            const k = `${key}-${f}`
+            if (localEdits.has(k) && String(localEdits.get(k)) === String(saved[f])) localEdits.delete(k)
+        }
     },
     onError: (err, variables) => {
-
-        const rowKey = variables?.productId || variables?._existingId
-        if (rowKey && localEdits.value.size) {
-            const next = new Map(localEdits.value)
-            next.delete(`${rowKey}-baseQty`)
-            next.delete(`${rowKey}-currentQty`)
-            localEdits.value = next
+        // Roll back only what this request carried; a value typed since then stays and is sent again.
+        const key = variables?.productId || variables?._existingId
+        for (const f of ["baseQty", "currentQty"]) {
+            const k = `${key}-${f}`
+            if (localEdits.has(k) && toNum(localEdits.get(k)) === variables[f]) localEdits.delete(k)
         }
         toast.add({
             severity: "error",
             summary: "Не удалось сохранить",
-            detail: err?.response?.data?.message || err.message,
+            detail: err?.response?.data?.message || (err?.code === "ECONNABORTED" ? "Сервер не ответил, попробуйте ещё раз" : err.message),
             life: 4000
         })
-    }
+    },
+    onSettled: (data, err, variables) => savingKeys.delete(variables.productId || variables._existingId)
 })
 
 const { mutate: runAutofill, isPending: isFilling } = useMutation({
@@ -178,14 +227,10 @@ const { mutate: runAutofill, isPending: isFilling } = useMutation({
 
 const summary = computed(() => {
     const list = rows.value || []
-    const edits = localEdits.value
     let deficitCount = 0
     let deficitValue = 0
     for (const r of list) {
-        const key = `${r.productId || r.cabinetItemId}`
-        const base = edits.has(`${key}-baseQty`) ? edits.get(`${key}-baseQty`) : r.baseQty || 0
-        const curr = edits.has(`${key}-currentQty`) ? edits.get(`${key}-currentQty`) : r.currentQty || 0
-        const need = Math.max(0, base - curr - (r.inOrderQty || 0))
+        const need = needOf(r)
         if (need > 0) {
             deficitCount++
 
@@ -230,32 +275,50 @@ function closeDialog() {
     refetch()
 }
 
-const localEdits = ref(new Map())
+// Reactive Map: a cell re-renders only when its own key changes.
+const localEdits = reactive(new Map())
 const saveTimers = new Map()
+const savingKeys = new Set()
 const BLUR_DEBOUNCE_MS = 350
+// Changes go to the server this long after the last tap/keystroke, without waiting for blur.
+const TYPE_DEBOUNCE_MS = 800
 
 function editKey(row, field) {
-    return `${row.productId || row.cabinetItemId}-${field}`
+    return `${rowKey(row)}-${field}`
 }
 
 function valueOf(row, field) {
     const key = editKey(row, field)
-    if (localEdits.value.has(key)) return localEdits.value.get(key)
+    if (localEdits.has(key)) return localEdits.get(key)
     return row[field]
 }
 
-function flushSave(row) {
+function toNum(v) {
+    const p = parseInt(String(v).replace(/\D+/g, ""), 10)
+    return Number.isFinite(p) ? Math.max(0, p) : 0
+}
+
+function flushSave(key) {
+    const row = rows.value?.find((r) => rowKey(r) === key)
+    if (!row) return
+    // One request per row at a time: two POSTs for a new row would hit the unique index,
+    // two PUTs could finish out of order.
+    if (savingKeys.has(key)) return scheduleSave(row, BLUR_DEBOUNCE_MS)
     const baseKey = editKey(row, "baseQty")
     const currKey = editKey(row, "currentQty")
-    const toNum = (v) => {
-        const p = parseInt(String(v).replace(/\D+/g, ""), 10)
-        return Number.isFinite(p) ? Math.max(0, p) : 0
-    }
-    const baseQty = toNum(localEdits.value.has(baseKey) ? localEdits.value.get(baseKey) : row.baseQty)
-    const currentQty = toNum(localEdits.value.has(currKey) ? localEdits.value.get(currKey) : row.currentQty)
+    const baseQty = toNum(localEdits.has(baseKey) ? localEdits.get(baseKey) : row.baseQty)
+    const currentQty = toNum(localEdits.has(currKey) ? localEdits.get(currKey) : row.currentQty)
     const hasChange =
         baseQty !== (row.baseQty || 0) || currentQty !== (row.currentQty || 0)
-    if (!hasChange) return
+    if (!hasChange) {
+        // e.g. "+" then "−": a leftover equal to the server would hide later server changes.
+        for (const f of ["baseQty", "currentQty"]) {
+            const k = editKey(row, f)
+            if (localEdits.has(k) && String(localEdits.get(k)) === String(row[f] || 0)) localEdits.delete(k)
+        }
+        return
+    }
+    savingKeys.add(key)
     saveItem({
         _existingId: row.cabinetItemId,
         productId: row.productId,
@@ -269,44 +332,48 @@ function flushSave(row) {
 function updateLocal(row, field, value) {
     const parsed = parseInt(value)
     const val = Number.isFinite(parsed) ? Math.max(0, parsed) : 0
-    const next = new Map(localEdits.value)
-    next.set(editKey(row, field), val)
-    localEdits.value = next
+    localEdits.set(editKey(row, field), val)
+    scheduleSave(row, TYPE_DEBOUNCE_MS)
 }
 
 function updateLocalRaw(row, field, raw) {
-    const next = new Map(localEdits.value)
-    next.set(editKey(row, field), raw)
-    localEdits.value = next
+    localEdits.set(editKey(row, field), raw)
+    scheduleSave(row, TYPE_DEBOUNCE_MS)
 }
 
 function normalizeAndSave(row, field) {
     const key = editKey(row, field)
-    if (localEdits.value.has(key)) {
-        const parsed = parseInt(String(localEdits.value.get(key)).replace(/\D+/g, ""), 10)
-        const val = Number.isFinite(parsed) ? Math.max(0, parsed) : 0
-        const next = new Map(localEdits.value)
-        next.set(key, val)
-        localEdits.value = next
-    }
+    if (localEdits.has(key)) localEdits.set(key, toNum(localEdits.get(key)))
     scheduleSave(row)
+    resortWhenIdle()
 }
 
-function scheduleSave(row) {
-    const timerKey = row.productId || row.cabinetItemId
+function scheduleSave(row, delay = BLUR_DEBOUNCE_MS) {
+    const timerKey = rowKey(row)
     clearTimeout(saveTimers.get(timerKey))
     saveTimers.set(
         timerKey,
         setTimeout(() => {
             saveTimers.delete(timerKey)
-            flushSave(row)
-        }, BLUR_DEBOUNCE_MS)
+            flushSave(timerKey)
+        }, delay)
     )
 }
 
+// Leaving the page or the app going to background sends what is still waiting instead of
+// dropping it (a hidden page's timers may never fire).
+function flushPending() {
+    for (const [key, t] of [...saveTimers]) {
+        clearTimeout(t)
+        saveTimers.delete(key)
+        flushSave(key)
+    }
+}
+const onVisibility = () => document.visibilityState === "hidden" && flushPending()
+document.addEventListener("visibilitychange", onVisibility)
 onBeforeUnmount(() => {
-    for (const t of saveTimers.values()) clearTimeout(t)
-    saveTimers.clear()
+    document.removeEventListener("visibilitychange", onVisibility)
+    flushPending()
 })
 
 const deleteConfirmDialog = ref(false)
@@ -451,7 +518,7 @@ function skipCabinet() {
                         class="cabinet-qty"
                         :modelValue="valueOf(row, 'currentQty')"
                         @input="(e) => updateLocal(row, 'currentQty', e.value)"
-                        @blur="scheduleSave(row)"
+                        @blur="normalizeAndSave(row, 'currentQty')"
                         :min="0"
                         :useGrouping="false"
                         size="small"
@@ -470,12 +537,12 @@ function skipCabinet() {
                     <span v-else>—</span>
                 </template>
             </Column>
-            <Column field="need" header="Нужно" sortable :sort-field="'needSort'">
+            <Column field="need" header="Нужно" sortable :sort-field="needSortOf">
                 <template #body="{ data: row }">
                     <Skeleton v-if="row._skeleton" width="2rem" height="1.4rem" border-radius="999px" />
                     <Tag
-                        v-else-if="row.need > 0"
-                        :value="row.need"
+                        v-else-if="needOf(row) > 0"
+                        :value="needOf(row)"
                         severity="warn"
                     />
                 </template>

@@ -30,10 +30,14 @@ const { isError, data, error, isSuccess, isFetching, failureCount } = useQuery({
     refetchInterval: 1000 * 60 * 5
 })
 
-const { mutate: createInventorization, isSuccess: isSuccessCreate } = useMutation({
+const openDocsDialog = ref(false)
+const openDocsMessage = ref("")
+let pendingPrefill = false
+
+const { mutate: createInventorization, isPending: isCreating } = useMutation({
     mutationKey: ["inventorization", "create"],
-    mutationFn: async (prefillFromStock) => {
-        return await axiosInstance.post("/inventory", { prefillFromStock: prefillFromStock === true })
+    mutationFn: async ({ prefill, confirm }) => {
+        return await axiosInstance.post("/inventory", { prefillFromStock: prefill === true, ...(confirm ? { confirmOpenDocs: true } : {}) })
     },
     onSuccess: (data) => {
 
@@ -43,9 +47,17 @@ const { mutate: createInventorization, isSuccess: isSuccessCreate } = useMutatio
         inventorization.value = data.data?._id
         inventorizationDialog.value = true
         newInventorizationDialog.value = false
+        openDocsDialog.value = false
     },
     onError: (e) => {
         newInventorizationDialog.value = false
+        openDocsDialog.value = false
+        const payload = e?.response?.data
+        if (payload?.code === "OPEN_DOCS") {
+            openDocsMessage.value = payload.message
+            openDocsDialog.value = true
+            return
+        }
         toast.add({
             severity: "warn",
             summary: "Нельзя начать инвентаризацию",
@@ -78,6 +90,11 @@ const openedIsLatest = computed(() => {
     const id = typeof inventorization.value === "string" ? inventorization.value : inventorization.value?._id
     return !!id && id === latestInventoryId.value
 })
+
+function startInventory(prefill, confirm = false) {
+    pendingPrefill = prefill
+    createInventorization({ prefill, confirm })
+}
 
 function editInventorization(_id) {
     inventorization.value = _id
@@ -163,8 +180,19 @@ function hideInventoryDialog() {
             </div>
             <template #footer>
                 <Button label="Отмена" icon="pi pi-times" text severity="secondary" @click="newInventorizationDialog = false" />
-                <Button label="Пустая (с нуля)" icon="pi pi-stop-circle" severity="secondary" outlined @click="createInventorization(false)" />
-                <Button label="Свести с остатками" icon="pi pi-check" severity="success" @click="createInventorization(true)" />
+                <Button label="Пустая (с нуля)" icon="pi pi-stop-circle" severity="secondary" outlined :disabled="isCreating" @click="startInventory(false)" />
+                <Button label="Свести с остатками" icon="pi pi-check" severity="success" :disabled="isCreating" @click="startInventory(true)" />
+            </template>
+        </Dialog>
+
+        <Dialog v-model:visible="openDocsDialog" :style="{ width: '95%', maxWidth: '480px' }" :breakpoints="{ '768px': '100vw' }" header="Есть незавершённые заказы и закупки" :modal="true">
+            <div class="flex items-start gap-3">
+                <i class="pi pi-exclamation-triangle !text-2xl text-orange-500" />
+                <span>{{ openDocsMessage }}</span>
+            </div>
+            <template #footer>
+                <Button label="Отмена" icon="pi pi-times" text severity="secondary" @click="openDocsDialog = false" />
+                <Button label="Начать инвентаризацию" icon="pi pi-check" severity="warn" :loading="isCreating" @click="startInventory(pendingPrefill, true)" />
             </template>
         </Dialog>
 

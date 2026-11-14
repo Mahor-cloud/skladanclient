@@ -26,6 +26,7 @@ const enabledExportDatabase = ref(false)
 const paymentMessage = ref("")
 const receivedMessage = ref("")
 const targetWarehouseValue = ref(0)
+const allowInventoryWithOpenDocs = ref(false)
 
 const subscriptionCategories = [
     { key: "orders", label: "Заказы", help: "Push при создании, изменении и удалении заказов компании — смена статуса заказа (оплачен → подтверждён казначеем → завершён), правка позиций, отмена. По умолчанию приходят события по ВСЕМ заказам компании; ниже можно ограничить только своими." },
@@ -126,6 +127,19 @@ const { mutate: updateTargetWarehouseValue, isPending: isSavingTarget } = useMut
     }
 })
 
+const { mutate: updateInventoryOpenDocs, isPending: isSavingInvOpenDocs } = useMutation({
+    mutationKey: ["updateInventoryOpenDocs"],
+    mutationFn: async (value) => await axiosInstance.put("/database/msg/inventory-open-docs", { allowInventoryWithOpenDocs: value === true }),
+    onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: ["msgs"] })
+        toast.add({ severity: "success", summary: "Настройка инвентаризации сохранена", life: 2000 })
+    },
+    onError: (error) => {
+        allowInventoryWithOpenDocs.value = msgsData.value?.allowInventoryWithOpenDocs === true
+        toast.add({ severity: "error", summary: "Ошибка", detail: error?.response?.data?.message || "Не удалось сохранить настройку", life: 4000 })
+    }
+})
+
 const { data: exportDatabaseData, refetch: refetchExportDatabase } = useQuery({
     queryKey: ["exportDatabase"],
     queryFn: async () => await axiosInstance.get("/database/export/company"),
@@ -186,6 +200,7 @@ watchEffect(() => {
         paymentMessage.value = msgsData?.value?.paymentMessage || ""
         receivedMessage.value = msgsData?.value?.receivedMessage || ""
         targetWarehouseValue.value = Number(msgsData?.value?.targetWarehouseValue) || 0
+        allowInventoryWithOpenDocs.value = msgsData?.value?.allowInventoryWithOpenDocs === true
     }
 })
 
@@ -573,6 +588,17 @@ const urlBase64ToUint8Array = (base64String) => {
                 :loading="isSavingTarget"
             />
             <small class="text-muted-color">Справочно — отображается на главной странице.</small>
+        </div>
+    </div>
+    <div v-if="user.role?.isSystem && isMsgsSuccess" class="card">
+        <div class="flex items-start gap-3">
+            <Checkbox v-model="allowInventoryWithOpenDocs" binary inputId="inv-open-docs" :disabled="isSavingInvOpenDocs" class="mt-1" @update:modelValue="updateInventoryOpenDocs" />
+            <label for="inv-open-docs" class="cursor-pointer">
+                <b>Инвентаризация: разрешать при незавершённых заказах и закупках</b>
+                <small class="block text-muted-color mt-1">
+                    Пока идёт инвентаризация, заказы нельзя выдать, а закупки — провести; новые заказы и закупки создавать можно. После завершения на складе будет то, что насчитали, а заказы и закупки продолжатся.
+                </small>
+            </label>
         </div>
     </div>
 

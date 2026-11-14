@@ -89,6 +89,13 @@ const { mutate: deleteOrder, isPending: isDeletingOrder } = useMutation({
         queryClient.invalidateQueries({ queryKey: ["orderShortages"] })
 
         emit("hideOrderDialog")
+    },
+    onError: (e) => {
+        confirmDeleteOrderDialog.value = false
+        const data = e?.response?.data
+        const frozen = data?.code === "ACTIVE_INVENTORY"
+        const detail = (typeof data?.message === "string" ? data.message : null) || e?.message || "Не удалось удалить заказ"
+        toast.add({ severity: frozen ? "warn" : "error", summary: frozen ? "Идёт инвентаризация" : "Ошибка", detail, life: 8000 })
     }
 })
 
@@ -112,6 +119,11 @@ const { mutate: updateOrder, isPending: isUpdatingOrder } = useMutation({
             finalConfirmedDialog.value = false
             queryClient.invalidateQueries({ queryKey: ["orderShortages"] })
             toast.add({ severity: "warn", summary: "Дефицит по складу", detail: data.message, life: 8000 })
+            return
+        }
+        if (data?.code === "ACTIVE_INVENTORY") {
+            finalConfirmedDialog.value = false
+            toast.add({ severity: "warn", summary: "Идёт инвентаризация", detail: data.message, life: 8000 })
             return
         }
         const detail = (typeof data?.message === "string" ? data.message : null) || e?.message || "Не удалось обновить заказ"

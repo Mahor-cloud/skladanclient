@@ -114,7 +114,8 @@ const { mutate: updateOrder, isPending: isUpdatingOrder } = useMutation({
     onError: (e) => {
         const data = e?.response?.data
 
-        if (data?.code === "INSUFFICIENT_STOCK") return
+        // in edit mode saveEdit's own onError shows it and trims the row; elsewhere fall through to the toast
+        if (data?.code === "INSUFFICIENT_STOCK" && editMode.value) return
         if (data?.code === "STOCK_SHORTAGE") {
             finalConfirmedDialog.value = false
             queryClient.invalidateQueries({ queryKey: ["orderShortages"] })

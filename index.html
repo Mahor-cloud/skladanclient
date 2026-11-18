@@ -1,22 +1,77 @@
 <!doctype html>
-<html lang="ru">
+<html lang="ru" data-theme="light">
     <head>
         <meta charset="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <meta name="theme-color" content="#ffffff" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+        <meta name="theme-color" content="#EEF1F6" />
         <meta name="description" content="Склад АН" />
         <meta name="robots" content="noindex, nofollow" />
         <title>СкладАН</title>
         <link rel="icon" href="/favicon.ico" sizes="48x48" />
         <link rel="apple-touch-icon" href="/ios/180.png" />
-        <!-- LCP logo: preload WebP с fetchpriority high. Браузеры без WebP
-             поддержки тихо проигнорируют preload (Content-Type не совпадёт);
-             фактический <picture> в шаблоне имеет PNG fallback. -->
-        <link rel="preload" as="image" href="/demo/images/litkom.webp" type="image/webp" fetchpriority="high" />
+        <link rel="preload" as="font" type="font/woff2" crossorigin href="/src/assets/ui/fonts/jost-cyrillic-wght-normal.woff2" />
+        <!-- Тема и размер текста до первой отрисовки. Файлом, а не в странице: на проде script-src 'self'. -->
+        <script src="/boot.js"></script>
+        <style>
+            /* Заставка видна с первого кадра, до загрузки стилей приложения: значения те же, что в tokens.css / final.css. */
+            html { background: #eef1f6; }
+            html[data-theme="dark"] { background: #0d1a30; }
+            body { margin: 0; }
+            .splash { position: fixed; inset: 0; z-index: 90; display: grid; place-items: center; background: #eef1f6; transition: opacity 0.36s cubic-bezier(0.2, 0.8, 0.2, 1), visibility 0.36s; }
+            [data-theme="dark"] .splash { background: #0d1a30; }
+            .splash__in { display: grid; justify-items: center; gap: 16px; transition: transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.36s cubic-bezier(0.2, 0.8, 0.2, 1); }
+            .splash .lgo { display: block; overflow: visible; width: 112px; height: 112px; }
+            .splash__t { display: grid; justify-items: center; gap: 4px; text-align: center; font-family: "Jost", "Futura", "Century Gothic", "Segoe UI", system-ui, sans-serif; }
+            .splash__t .wm { display: inline-flex; align-items: center; gap: 0.12em; font: 600 25px/1 "Lora", Georgia, "Times New Roman", serif; letter-spacing: -0.01em; white-space: nowrap; color: #14233b; }
+            .splash__t .wm__an { font: 700 0.7em/1 "Jost", "Futura", "Century Gothic", "Segoe UI", system-ui, sans-serif; letter-spacing: 0.06em; padding: 0.2em 0.3em 0.16em 0.38em; margin-left: 0.08em; color: #0147b9; border: 0.12em solid currentColor; border-radius: 0.26em; outline: 0.05em solid currentColor; outline-offset: 0.1em; transform: rotate(-5deg); }
+            .splash__t small { font-size: 14px; color: #4a5870; }
+            [data-theme="dark"] .splash__t .wm { color: #e9eef7; }
+            [data-theme="dark"] .splash__t .wm__an { color: #9dbdfa; }
+            [data-theme="dark"] .splash__t small { color: #a9b7ce; }
+            .splash.is-done { opacity: 0; visibility: hidden; }
+            .splash.is-done .splash__in { transform: scale(1.12); opacity: 0; }
+            .lgo__ring { fill: none; stroke: #0147b9; stroke-width: 5; stroke-linejoin: round; stroke-linecap: square; stroke-dasharray: 1 1.2; stroke-dashoffset: 0; }
+            .lgo__rhomb { stroke-width: 4.5; stroke-linejoin: miter; }
+            .lgo__gold { fill: none; stroke: #cfc06a; stroke-width: 3.5; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 1 1.2; stroke-dashoffset: 0; }
+            .lgo__txt { stroke-width: 2.5; }
+            .lgo__page { fill: #fbf7e3; stroke: none; }
+            @media (prefers-reduced-motion: no-preference) {
+                .lgo--load .lgo__ring { stroke-dasharray: 0.68 0.32; animation: lgTravel 1.9s linear infinite; }
+                .lgo--load .lgo__rhomb { stroke-dasharray: 0.58 0.42; animation: lgTravel 2.6s linear infinite reverse; }
+                .lgo--load .lgo__book { animation: lgBreath 1.9s ease-in-out infinite; }
+                .lgo--load.is-ready .lgo__ring, .lgo--load.is-ready .lgo__rhomb { animation: none; stroke-dasharray: 1 0; stroke-dashoffset: 0; transition: stroke-dasharray 0.26s cubic-bezier(0.2, 0.8, 0.2, 1); }
+                .lgo--load.is-ready .lgo__book { animation: none; }
+            }
+            @keyframes lgTravel { to { stroke-dashoffset: -1; } }
+            @keyframes lgBreath { 0%, 100% { opacity: 0.82; } 50% { opacity: 1; } }
+        </style>
     </head>
 
     <body>
-        <div id="app"></div>
+        <!-- Заставка-загрузчик: знак виден с первого кадра, пока грузится приложение; убирает её main.js -->
+        <div id="splash" class="splash" role="status" aria-label="СкладАН загружается">
+            <div class="splash__in">
+                <svg class="lgo lgo--load" viewBox="0 0 200 200" aria-hidden="true" focusable="false">
+                    <circle class="lgo__bg" cx="100" cy="100" r="96.5" fill="#fff" />
+                    <circle class="lgo__ring" pathLength="1" cx="100" cy="100" r="96.5" transform="rotate(-90 100 100)" />
+                    <path class="lgo__ring lgo__rhomb" pathLength="1" d="M55.5 55.5L100 11l89 89-89 89L11 100z" />
+                    <g class="lgo__book">
+                        <path class="lgo__page" d="M100 80C89 71 69 68 54 72v52c15-4 35-1 46 8 11-9 31-12 46-8V72c-15-4-35-1-46 8z" />
+                        <path class="lgo__gold" pathLength="1" d="M100 80C89 71 69 68 54 72v52c15-4 35-1 46 8 11-9 31-12 46-8V72c-15-4-35-1-46 8z" />
+                        <path class="lgo__gold" pathLength="1" d="M100 80v52" />
+                        <path class="lgo__gold lgo__cover" pathLength="1" d="M48 78v52c17-3 39-1 52 9 13-10 35-12 52-9V78" />
+                        <path class="lgo__gold lgo__txt" pathLength="1" d="M62 84c10-2 22-1 31 4M62 95c10-2 22-1 31 4M62 106c10-2 22-1 31 4M138 84c-10-2-22-1-31 4M138 95c-10-2-22-1-31 4M138 106c-10-2-22-1-31 4" />
+                    </g>
+                </svg>
+                <div class="splash__t">
+                    <span class="wm wm--stamp"><span class="wm__s">Склад</span><span class="wm__an">АН</span></span><small>Загружаем каталог и заказы…</small>
+                </div>
+            </div>
+        </div>
+        <div id="app" class="app"></div>
+        <div id="layer"></div>
+        <div id="toasts" aria-live="polite"></div>
+        <noscript>Для работы приложения включите JavaScript.</noscript>
         <script type="module" src="/src/main.js"></script>
     </body>
 </html>

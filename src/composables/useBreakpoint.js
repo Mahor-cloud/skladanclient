@@ -3,40 +3,20 @@
  * Licensed under Apache 2.0
  */
 
-import { onBeforeUnmount, onMounted, ref } from "vue"
+import { ref } from "vue"
+
+// Точки ширины каркаса: телефон < 900 ≤ компьютер; от 1180 — правая колонка; от 1800 — плотные таблицы целиком.
+const mq = (query) => {
+    const m = window.matchMedia(query)
+    const r = ref(m.matches)
+    m.addEventListener("change", (e) => (r.value = e.matches))
+    return r
+}
+export const isDesk = mq("(min-width: 900px)")
+export const isWide = mq("(min-width: 1180px)")
+export const isRoomy = mq("(min-width: 1800px)")
+export const reducedMotion = mq("(prefers-reduced-motion: reduce)")
 
 export function useBreakpoint() {
-    const width = ref(typeof window !== "undefined" ? window.innerWidth : 1024)
-
-    const onResize = () => {
-        width.value = window.innerWidth
-    }
-
-    onMounted(() => {
-        window.addEventListener("resize", onResize, { passive: true })
-        onResize()
-    })
-
-    onBeforeUnmount(() => {
-        window.removeEventListener("resize", onResize)
-    })
-
-    const isMobile = () => width.value < 576
-    const isTablet = () => width.value >= 576 && width.value < 768
-    const isDesktop = () => width.value >= 768
-    const isWide = () => width.value >= 1200
-
-    return {
-        width,
-
-        get isMobile() { return width.value < 576 },
-        get isTablet() { return width.value >= 576 && width.value < 768 },
-        get isDesktop() { return width.value >= 768 },
-        get isWide() { return width.value >= 1200 },
-
-        isMobileFn: isMobile,
-        isTabletFn: isTablet,
-        isDesktopFn: isDesktop,
-        isWideFn: isWide
-    }
+    return { isDesk, isWide, isRoomy }
 }

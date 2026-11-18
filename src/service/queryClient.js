@@ -11,11 +11,7 @@ export const queryClient = new QueryClient({
             retry: (failureCount, error) => {
                 const status = error?.response?.status
                 if (status === 429) {
-
-                    console.warn(
-                        `[api] 429 Too Many Requests — повтор #${failureCount + 1}: ` +
-                            (error?.config?.url || "?")
-                    )
+                    console.warn(`[api] 429 Too Many Requests — повтор #${failureCount + 1}: ` + (error?.config?.url || "?"))
                     return failureCount < 10
                 }
 

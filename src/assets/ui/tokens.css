@@ -1,0 +1,304 @@
+/* =====================================================================
+   «СкладАН» · дизайн-токены. Единственный источник значений.
+   Тон палитры синеватый: холодная бумага, мягкие поверхности, приглушённые
+   статусы. Цвета бренда взяты из логотипа: синий #0147B9, золотой #CFC06A.
+   Светлая тема по умолчанию; тёмная (тёмно-синяя) — [data-theme="dark"].
+   ===================================================================== */
+:root {
+  color-scheme: light;
+
+  /* --- Поверхности: холодная бумага --- */
+  --bg: #EEF1F6;
+  --bg-deep: #E4E9F1;          /* подложка боковой колонки и полос */
+  --surface: #FBFCFE;
+  --surface-2: #F1F4F9;        /* вложенные блоки, подложки полей */
+  --surface-3: #E2E8F1;        /* скелетоны, разделители-плашки */
+  --line: #DDE3EC;
+  --line-strong: #C3CCDA;
+  --scrim: rgba(13, 27, 51, .42);
+
+  /* --- Текст: тёмно-синие чернила --- */
+  --text: #14233B;
+  --text-2: #4A5870;
+  --text-3: #5C6A82;           /* подписи; на бумаге ≥ 4.5:1 */
+  --on-primary: #FFFFFF;
+
+  /* --- Бренд: синий из логотипа --- */
+  --primary: #0147B9;
+  --primary-hover: #013C9E;
+  --primary-press: #013283;
+  --primary-soft: #E2EAF8;
+  --primary-soft-2: #CEDBF3;
+  --primary-text: #0147B9;
+
+  /* --- Второй акцент: золото из логотипа («ваш ход», счётчики) --- */
+  --gold: #CFC06A;
+  --gold-soft: #F5F0D6;
+  --gold-text: #6B5F14;        /* тёмное золото для текста: 6.0:1 на бумаге */
+  --accent: var(--gold);
+  --on-accent: #14233B;
+  --accent-soft: var(--gold-soft);
+  --accent-text: var(--gold-text);
+
+  /* --- Приглушённая семантика (без «светофора») --- */
+  --success: #3F7F63;
+  --success-soft: #DFEDE5;
+  --success-text: #2A5F48;
+
+  --info: #4C78AE;
+  --info-soft: #E1EAF5;
+  --info-text: #2C5587;
+
+  --warning: #B8862F;
+  --warning-soft: #F5EAD0;
+  --warning-text: #7A5712;
+
+  --teal: #3C828A;
+  --teal-soft: #DCECEE;
+  --teal-text: #2A6067;
+
+  --danger: #B6493C;
+  --danger-soft: #F6E3DF;
+  --danger-text: #96362A;
+
+  --neutral-soft: #E8ECF3;
+  --neutral-text: #45546B;
+
+  /* --- Единый язык статусов: один этап = одна форма и один цвет везде --- */
+  --st-new: var(--neutral-text);      --st-new-bg: var(--neutral-soft);
+  --st-paid: var(--gold-text);        --st-paid-bg: var(--gold-soft);
+  --st-ready: var(--primary-text);    --st-ready-bg: var(--primary-soft);
+  --st-done: var(--success-text);     --st-done-bg: var(--success-soft);
+  --st-partial: var(--warning-text);  --st-partial-bg: var(--warning-soft);
+
+  /* --- Штампы --- */
+  --stamp-paid: #8A7A14;
+  --stamp-ready: #0147B9;
+  --stamp-done: #2A6A4E;
+  --stamp-alpha: .9;
+
+  /* --- Матовое стекло плавающих элементов (без сияния) --- */
+  --glass: color-mix(in oklab, var(--surface) 74%, transparent);
+  --glass-strong: color-mix(in oklab, var(--surface) 88%, transparent);
+  --glass-edge: rgba(255, 255, 255, .7);
+  --glass-blur: blur(18px) saturate(1.25);
+
+  /* --- Цвета видов (обложки) --- */
+  --cat-book: #2C3E9E;
+  --cat-booklet: #0E8F80;
+  --cat-ip: #E8902B;
+  --cat-keytag: #FF7A1A;
+  --cat-bu: #2F7D5B;
+  --cat-sp: #4F6D8F;
+  --cat-notebook: #A23B72;
+  --cat-other: #3A3D4A;
+  --cover-mix: 11%;            /* насыщенность подложки обложки */
+
+  /* --- Типографика: Lora (заголовки) + Jost (текст), как в 08 --- */
+  --font: "Jost", "Futura", "Century Gothic", "Segoe UI", system-ui, sans-serif;
+  --font-serif: "Lora", Georgia, "Times New Roman", serif;
+  /* Имена шкалы унаследованы от 03; значения подняты на шаг — у Jost низкая строчная. */
+  --fs-11: 12px;
+  --fs-12: 13px;
+  --fs-13: 14px;
+  --fs-14: 15px;
+  --fs-15: 16px;
+  --fs-16: 17px;
+  --fs-18: 19px;
+  --fs-20: 21px;
+  --fs-24: 25px;
+  --fs-28: 29px;
+  --fs-34: 34px;
+  --fs-44: 44px;
+  --lh-tight: 1.15;
+  --lh-snug: 1.3;
+  --lh-body: 1.45;
+  --fw-regular: 400;
+  --fw-medium: 500;
+  --fw-bold: 600;
+  --fw-heavy: 650;
+  --ls-tight: -0.01em;
+  --ls-caps: 0.07em;
+
+  /* --- Отступы (шаг 4) --- */
+  --sp-1: 2px;
+  --sp-2: 4px;
+  --sp-3: 6px;
+  --sp-4: 8px;
+  --sp-5: 12px;
+  --sp-6: 16px;
+  --sp-7: 20px;
+  --sp-8: 24px;
+  --sp-9: 32px;
+  --sp-10: 40px;
+  --sp-11: 48px;
+  --sp-12: 64px;
+
+  /* --- Размеры --- */
+  --tap: 44px;
+  --ctl-h: 44px;
+  --ctl-h-lg: 52px;
+  --ctl-h-sm: 36px;
+  --header-h: 0px;             /* общей строки поиска сверху больше нет */
+  --deptbar-h: 0px;            /* полосы разделов больше нет: разделы — в левой колонке */
+  --tabbar-h: 64px;
+  --cartbar-h: 60px;
+  --page-max: 1440px;
+  --side-w: 76px;              /* колонка разделов: узкая до 1340, полная — после */
+  --pane-w: 360px;             /* правая колонка: ОДНА ширина на все экраны; меняется только от ширины окна */
+  --pane-res: 0px;             /* сколько места занято правой колонкой (0, пока окно уже 1180) */
+  --aside-w: 248px;
+  --cart-w: 320px;
+  --sheet-max: 560px;
+  --drawer-w: 480px;
+
+  /* --- Радиусы --- */
+  --r-xs: 6px;
+  --r-sm: 8px;
+  --r-md: 12px;
+  --r-lg: 16px;
+  --r-xl: 20px;
+  --r-2xl: 28px;
+  --r-pill: 999px;
+
+  /* --- Тени (мягкие, синеватые) --- */
+  --sh-xs: 0 1px 2px rgba(20, 35, 59, .06);
+  --sh-sm: 0 1px 2px rgba(20, 35, 59, .05), 0 2px 8px -2px rgba(20, 35, 59, .07);
+  --sh-md: 0 2px 4px rgba(20, 35, 59, .04), 0 8px 24px -6px rgba(20, 35, 59, .12);
+  --sh-lg: 0 4px 8px rgba(20, 35, 59, .05), 0 24px 56px -12px rgba(20, 35, 59, .22);
+  --sh-primary: 0 6px 18px -8px rgba(1, 71, 185, .5);
+  --sh-up: 0 -1px 0 var(--line), 0 -8px 24px -12px rgba(20, 35, 59, .16);
+  --focus: 0 0 0 3px rgba(1, 71, 185, .32);
+  --ring: rgba(1, 71, 185, .45);
+
+  /* --- Движение --- */
+  --d-1: 120ms;
+  --d-2: 200ms;
+  --d-3: 320ms;
+  --d-4: 480ms;
+  --d-fly: 620ms;
+  --ease: cubic-bezier(.2, .8, .2, 1);
+  --ease-in: cubic-bezier(.4, 0, 1, 1);
+  --ease-spring: cubic-bezier(.34, 1.56, .64, 1);
+  --ease-bounce: cubic-bezier(.34, 1.7, .64, 1);   /* из 02: счётчик с перелётом */
+  --ease-sheet: cubic-bezier(.32, .72, 0, 1);
+  --shimmer: 1.4s;
+
+  /* --- Слои --- */
+  --z-sticky: 10;
+  --z-header: 20;
+  --z-cartbar: 28;
+  --z-tabbar: 30;
+  --z-dropdown: 35;
+  --z-overlay: 40;
+  --z-sheet: 50;
+  --z-toast: 60;
+  --z-fly: 70;
+}
+
+/* ---------- Крупный текст: настройка «Размер текста» в профиле (приём из 02) ---------- */
+:root[data-scale="large"] {
+  --fs-11: 13.5px;
+  --fs-12: 14.5px;
+  --fs-13: 15.5px;
+  --fs-14: 17px;
+  --fs-15: 18px;
+  --fs-16: 19px;
+  --fs-18: 21.5px;
+  --fs-20: 23.5px;
+  --fs-24: 28px;
+  --fs-28: 32px;
+  --fs-34: 38px;
+  --ctl-h: 48px;
+  --ctl-h-lg: 56px;
+  --ctl-h-sm: 40px;
+}
+
+/* ---------- Тёмная тема: тёмно-синяя, не чёрная ---------- */
+[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #0D1A30;
+  --bg-deep: #0A1527;
+  --surface: #14233F;
+  --surface-2: #1B2D4E;
+  --surface-3: #25395E;
+  --line: #233658;
+  --line-strong: #344A72;
+  --scrim: rgba(4, 10, 22, .62);
+
+  --text: #E9EEF7;
+  --text-2: #A9B7CE;
+  --text-3: #8C9BB6;
+
+  --primary: #2A66D6;
+  --primary-hover: #3A76E6;
+  --primary-press: #2259C0;
+  --primary-soft: #1A3260;
+  --primary-soft-2: #224080;
+  --primary-text: #9DBDFA;
+
+  --gold: #CFC06A;
+  --gold-soft: #37331F;
+  --gold-text: #E0D38A;
+  --on-accent: #14233B;
+
+  --success: #3F7F63;
+  --success-soft: #173528;
+  --success-text: #8FD0B0;
+
+  --info: #5B8BC4;
+  --info-soft: #1A2F4E;
+  --info-text: #9CC0EE;
+
+  --warning: #C99A45;
+  --warning-soft: #392E18;
+  --warning-text: #E6C27E;
+
+  --teal: #4C98A0;
+  --teal-soft: #15343A;
+  --teal-text: #8CCDD4;
+
+  --danger: #B6493C;
+  --danger-soft: #3D201D;
+  --danger-text: #F0A096;
+
+  --neutral-soft: #223354;
+  --neutral-text: #B7C3D8;
+
+  --stamp-paid: #E0D38A;
+  --stamp-ready: #9DBDFA;
+  --stamp-done: #8FD0B0;
+  --stamp-alpha: .95;
+
+  --glass-edge: rgba(255, 255, 255, .1);
+  --cover-mix: 20%;
+
+  --sh-xs: 0 1px 2px rgba(3, 8, 20, .4);
+  --sh-sm: 0 1px 2px rgba(3, 8, 20, .35), 0 2px 8px -2px rgba(3, 8, 20, .4);
+  --sh-md: 0 2px 4px rgba(3, 8, 20, .3), 0 10px 28px -6px rgba(3, 8, 20, .55);
+  --sh-lg: 0 4px 8px rgba(3, 8, 20, .35), 0 28px 64px -12px rgba(3, 8, 20, .7);
+  --sh-primary: 0 6px 20px -8px rgba(42, 102, 214, .6);
+  --sh-up: 0 -1px 0 var(--line), 0 -10px 28px -12px rgba(3, 8, 20, .6);
+  --focus: 0 0 0 3px rgba(157, 189, 250, .45);
+  --ring: rgba(157, 189, 250, .5);
+}
+
+@media (min-width: 1180px) {
+  :root { --pane-res: var(--pane-w); }
+}
+@media (min-width: 1340px) {
+  :root { --side-w: 216px; }
+}
+@media (min-width: 1440px) {
+  :root { --pane-w: 400px; }
+}
+@media (min-width: 1680px) {
+  :root { --side-w: 232px; --pane-w: 420px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --d-1: 1ms; --d-2: 1ms; --d-3: 1ms; --d-4: 1ms; --d-fly: 1ms;
+    --shimmer: 0s;
+  }
+}

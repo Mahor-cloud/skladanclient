@@ -21,21 +21,14 @@ const axiosInstance = axios.create({
     }
 })
 
-const errorCatch = (error) =>
-    error.response && error.response.data
-        ? typeof error.response.data.message === "object"
-            ? error.response.data.message[0]
-            : error.response.data.message
-        : error.message
+const errorCatch = (error) => (error.response && error.response.data ? (typeof error.response.data.message === "object" ? error.response.data.message[0] : error.response.data.message) : error.message)
 
 let refreshPromise = null
 function refreshTokensOnce() {
     if (!refreshPromise) {
-        refreshPromise = authService
-            .getNewTokens()
-            .finally(() => {
-                refreshPromise = null
-            })
+        refreshPromise = authService.getNewTokens().finally(() => {
+            refreshPromise = null
+        })
     }
     return refreshPromise
 }
@@ -61,7 +54,7 @@ axiosInstance.interceptors.request.use(async (config) => {
             await refreshTokensOnce()
             accessToken = Cookies.get("accessToken")
         } catch {
-
+            // обновить не вышло — запрос уйдёт как есть, 401 разберёт перехватчик ответа
         }
     }
     if (config.headers && accessToken) {
@@ -75,10 +68,7 @@ axiosInstance.interceptors.response.use(
     async (error) => {
         const originalRequest = error.config
         const status = error?.response?.status
-        const isAuthError =
-            status === 401 ||
-            errorCatch(error) === "jwt expired" ||
-            errorCatch(error) === "jwt must be provided"
+        const isAuthError = status === 401 || errorCatch(error) === "jwt expired" || errorCatch(error) === "jwt must be provided"
 
         if (isAuthError && originalRequest && !originalRequest._isRetry) {
             originalRequest._isRetry = true

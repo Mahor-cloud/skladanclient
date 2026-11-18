@@ -3,89 +3,53 @@
  * Licensed under Apache 2.0
  */
 
+import "@/assets/ui/fonts.css"
+import "@/assets/ui/tokens.css"
+import "@/assets/ui/app.css"
+import "@/assets/ui/ops.css"
+import "@/assets/ui/final.css"
+// Слушатель beforeinstallprompt должен стоять до прихода события, а профиль грузится лениво.
+import "@/composables/usePwaInstall"
+
+import { queryClient } from "@/service/queryClient"
+import { installTilt } from "@/ui/fx"
+import { confirm } from "@/ui/overlay"
+import { bindPaneRouter } from "@/ui/pane"
+import { VueQueryPlugin } from "@tanstack/vue-query"
+import { registerSW } from "virtual:pwa-register"
 import { createApp } from "vue"
 import App from "./App.vue"
 import router from "./router"
 import "./router/guard"
 
-import { definePreset } from "@primevue/themes"
-import Aura from "@primevue/themes/aura"
-import PrimeVue from "primevue/config"
-import ConfirmationService from "primevue/confirmationservice"
-import ToastService from "primevue/toastservice"
-
-import "@/assets/styles.scss"
-import "@/assets/tailwind.css"
-import { VueQueryPlugin } from "@tanstack/vue-query"
-import { queryClient } from "@/service/queryClient"
-
-import { registerSW } from "virtual:pwa-register"
-
-const MyPreset = definePreset(Aura, {
-    semantic: {
-        primary: { 50: "#f0f9ff", 100: "#e0f2fe", 200: "#bae6fd", 300: "#7dd3fc", 400: "#38bdf8", 500: "#0ea5e9", 600: "#0284c7", 700: "#0369a1", 800: "#075985", 900: "#0c4a6e", 950: "#082f49" },
-        surface: { 0: "#ffffff", 50: "#fafafa", 100: "#f4f4f5", 200: "#e4e4e7", 300: "#d4d4d8", 400: "#a1a1aa", 500: "#71717a", 600: "#52525b", 700: "#3f3f46", 800: "#27272a", 900: "#18181b", 950: "#09090b" },
-
-        colorScheme: {
-            light: {
-                primary: {
-                    color: "{primary.700}",
-                    contrastColor: "#ffffff",
-                    hoverColor: "{primary.800}",
-                    activeColor: "{primary.900}"
-                },
-                highlight: {
-                    background: "{primary.50}",
-                    focusBackground: "{primary.100}",
-                    color: "{primary.700}",
-                    focusColor: "{primary.800}"
-                }
-            },
-            dark: {
-                primary: {
-                    color: "{primary.400}",
-                    contrastColor: "{surface.900}",
-                    hoverColor: "{primary.300}",
-                    activeColor: "{primary.200}"
-                },
-                highlight: {
-                    background: "color-mix(in srgb, {primary.400}, transparent 84%)",
-                    focusBackground: "color-mix(in srgb, {primary.400}, transparent 76%)",
-                    color: "rgba(255,255,255,.87)",
-                    focusColor: "rgba(255,255,255,.87)"
-                }
-            }
-        }
-    }
-})
-
 const app = createApp(App)
-
 app.use(router)
-app.use(PrimeVue, {
-    theme: {
-        preset: MyPreset,
-        options: {
-            darkModeSelector: ".app-dark"
-        }
-    }
-})
-
 app.use(VueQueryPlugin, { queryClient })
-app.use(ToastService)
-app.use(ConfirmationService)
+bindPaneRouter(router)
+installTilt()
 
 registerSW({
     immediate: true,
-    onNeedRefresh() {
-
-        if (confirm("Новая версия приложения доступна.")) {
-            window.location.reload()
-        }
-    },
-    onOfflineReady() {
-
+    async onNeedRefresh() {
+        if (await confirm({ title: "Новая версия приложения доступна.", ok: "Обновить", cancel: "Позже", icon: "download" })) window.location.reload()
     }
 })
 
-app.mount("#app")
+// Заставка из index.html уходит, когда первый экран готов: линии знака собираются, затем она растворяется.
+function splashDone() {
+    const el = document.getElementById("splash")
+    if (!el) return
+    el.querySelector(".lgo")?.classList.add("is-ready")
+    setTimeout(
+        () => {
+            el.classList.add("is-done")
+            setTimeout(() => el.remove(), 440)
+        },
+        window.matchMedia("(prefers-reduced-motion: reduce)").matches ? 0 : 160
+    )
+}
+
+router.isReady().finally(() => {
+    app.mount("#app")
+    splashDone()
+})

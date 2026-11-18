@@ -1,15 +1,13 @@
 import { fileURLToPath, URL } from "node:url"
 
-import { PrimeVueResolver } from "@primevue/auto-import-resolver"
 import vue from "@vitejs/plugin-vue"
-import Components from "unplugin-vue-components/vite"
 import { defineConfig } from "vite"
 import { VitePWA } from "vite-plugin-pwa"
-import { icons } from "./public/icons.json"
 
 export default defineConfig({
     optimizeDeps: {
         noDiscovery: true,
+        // pako (внутри pdf-lib) — CommonJS: без предсборки накладная в dev не загрузится.
         include: ["pako"]
     },
     plugins: [
@@ -17,14 +15,21 @@ export default defineConfig({
 
         VitePWA({
             registerType: "autoUpdate",
-            injectRegister: "auto",
-            includeAssets: ["favicon.ico", "apple-touch-icon-180x180.png", "maskable-icon-512x512.png"],
+            includeAssets: ["favicon.ico"],
+            // Значки манифеста браузер берёт сам при установке; в предкэше они были 7 МБ из 9.
+            includeManifestIcons: false,
             manifest: {
                 name: "СкладАН PWA",
                 short_name: "Склад",
                 description: "Склад",
-                theme_color: "#312f2f",
-                icons: icons,
+                // Цвет фона заставки: системный экран запуска установленного приложения переходит в заставку из index.html без вспышки.
+                theme_color: "#EEF1F6",
+                background_color: "#EEF1F6",
+                // Android и установка с компьютера берут 192 и 512; iOS — apple-touch-icon из index.html, вкладка — favicon.ico.
+                icons: [
+                    { src: "android/android-launchericon-192-192.png", sizes: "192x192", type: "image/png" },
+                    { src: "android/android-launchericon-512-512.png", sizes: "512x512", type: "image/png" }
+                ],
                 display: "standalone",
                 screenshots: [
                     {
@@ -44,40 +49,24 @@ export default defineConfig({
                 ]
             },
             workbox: {
-                cleanupOutdatedCaches: true,
+                // Накладная (pdf-lib + шрифт, ≈1 МБ) нужна единицам — качается по нажатию, а не при установке.
+                globIgnores: ["assets/invoice-*.js"],
                 importScripts: ["/service-worker.js"],
                 runtimeCaching: [
                     {
-                        urlPattern: /\.(json|html|htm|js|css)$/,
-                        handler: "NetworkOnly", // Всегда загружать HTML из сети
-                        options: {
-                            cacheName: "html-cache",
-                            expiration: {
-                                maxEntries: 30,
-                                maxAgeSeconds: 60 // 1 минута
-                            }
-                        }
-                    },
-                    {
-                        urlPattern: /\.(png|jpg|jpeg|svg|webp)$/,
+                        // Картинки (включая обложки /covers/*.webp) и шрифты — из кэша: имена шрифтов с хэшем, обложки не меняются.
+                        urlPattern: /\.(png|jpg|jpeg|svg|webp|woff2)$/,
                         handler: "CacheFirst",
                         options: {
                             cacheName: "static-assets",
                             expiration: {
-                                maxEntries: 100,
+                                maxEntries: 160,
                                 maxAgeSeconds: 60 * 60 * 24 * 7 // 1 неделя
                             }
                         }
                     }
                 ]
-            },
-            // PWA в dev мешает HMR из-за устаревших кэшей. Включается только в build.
-            devOptions: {
-                enabled: false
             }
-        }),
-        Components({
-            resolvers: [PrimeVueResolver()]
         })
     ],
     resolve: {
@@ -93,34 +82,25 @@ export default defineConfig({
             }
         }
     },
+    test: {
+        environment: "happy-dom"
+    },
     build: {
-        outDir: "dist",
-        // invoice.js (pdf-lib + fontkit + шрифт ≈ 1.1 МБ) — лениво грузится
-        // только при печати накладной (см. dynamic import в OrderDialog), не
-        // на critical path. Чтобы Vite не выводил warning на каждой сборке —
-        // поднимаем лимит выше его размера. На реальную загрузку влияния
-        // нет, это только настройка warning.
+        // invoice.js (pdf-lib + fontkit + шрифт ≈ 1 МБ) грузится лениво, только при печати накладной;
+        // лимит поднят выше его размера, чтобы сборка не предупреждала о нём каждый раз.
         chunkSizeWarningLimit: 1200,
         rollupOptions: {
-            cache: false,
             input: {
                 application: "./index.html"
             },
+            // Рисованные обложки без побочных эффектов: иначе каждый экран, импортирующий "@/ui", тянул бы их, даже без обложек.
+            treeshake: { moduleSideEffects: (id) => !/\/src\/domain\/(covers|stockCovers)\.js$/.test(id) },
             output: {
-                // Контент-хэш в имени точки входа: раньше был неизменный
-                // /application.js — браузер/SW кэшировали его «вечно» и не
-                // видели новые деплои без hard-refresh, а Lighthouse штрафовал
-                // cache-insight (~1.1 МБ). Теперь хэш → файл в /assets/,
-                // nginx отдаёт его immutable на год, при изменении кода имя
-                // меняется само (index.html подставляет новое). Логика не
-                // затронута — Vite сам прописывает правильный <script src>.
-                entryFileNames: "assets/[name]-[hash].js"
-                // manualChunks намеренно НЕ используется: разбиение монолита
-                // на vendor/primevue-чанки добавляло цепочку запросов
-                // (waterfall) и стабильно роняло Lighthouse-производительность
-                // на ~5–15 пунктов при том же объёме JS. Единственный реальный
-                // выигрыш — ленивый pdf-lib — реализован через dynamic import
-                // в OrderDialog (вне critical-path), без manualChunks.
+                // Общий набор (основа, домен, запросы, составные функции) — во входном файле, а не россыпью кусков по 0,3–3 КБ
+                // на каждый экран; обычный статический импорт этого не даёт: Rollup раскладывает модули по тому, кто их использует.
+                // Вход (index.html со всеми статическими зависимостями) в том же куске — значит, это один файл, а не цепочка
+                // vendor-чанков, которая раньше роняла первую загрузку. Обложки — отдельно: нужны не всем экранам.
+                manualChunks: (id) => (/\/src\/(ui\/(UiCover|UiLines)|domain\/(covers|stockCovers))/.test(id) ? "covers" : /\/index\.html$|\/src\/(ui|domain|composables|service)\//.test(id) ? "application" : undefined)
             }
         }
     }

@@ -3,6 +3,7 @@
  * Licensed under Apache 2.0
  */
 
+import { authService } from "@/service/auth/auth.service"
 import axiosInstance from "@/service/axios"
 import { queryClient } from "@/service/queryClient"
 import Cookies from "js-cookie"
@@ -11,47 +12,20 @@ import { onBeforeUnmount, onMounted } from "vue"
 const KEY_MAP = [
     {
         prefix: "order",
-        keys: [
-            "orders",
-            "order",
-            "orderShortages",
-            "products",
-            "product",
-            "products-for-statistics",
-            "statistics",
-            "cabinet-merged",
-            "cabinet-orders-summary",
-            "cabinet-summary",
-            "cabinet-all"
-        ]
+        keys: ["orders", "order", "orderShortages", "products", "product", "products-for-statistics", "statistics", "cabinet-merged", "cabinet-orders-summary", "cabinet-summary", "cabinet-all"]
     },
 
     {
         prefix: "purchase",
-        keys: [
-            "purchases",
-            "purchaseOrder",
-            "products",
-            "product",
-            "products-for-statistics",
-            "statistics"
-        ]
+        keys: ["purchases", "orderShortages", "purchaseOrder", "products", "product", "products-for-statistics", "statistics"]
     },
     {
         prefix: "inventory",
-        keys: [
-            "inventory",
-            "inventorizations",
-            "inventorization",
-            "products",
-            "product",
-            "products-for-statistics",
-            "statistics"
-        ]
+        keys: ["inventory", "orderShortages", "inventorizations", "inventorization", "products", "product", "products-for-statistics", "statistics"]
     },
     {
         prefix: "product",
-        keys: ["products", "product", "products-for-statistics", "statistics"]
+        keys: ["products", "product", "product-kinds", "products-for-statistics", "statistics"]
     },
     {
         prefix: "user",
@@ -62,17 +36,11 @@ const KEY_MAP = [
         keys: ["roles", "role", "users", "user", "users-for-statistics"]
     },
 
-    { prefix: "message", keys: ["msgs"] },
+    { prefix: "message", keys: ["msgs", "product-kinds"] },
 
     {
         prefix: "cabinet",
-        keys: [
-            "cabinet-merged",
-            "cabinet-orders-summary",
-            "cabinet-summary",
-            "cabinet-all",
-            "cabinet-status"
-        ]
+        keys: ["cabinet-merged", "cabinet-orders-summary", "cabinet-summary", "cabinet-all", "cabinet-status"]
     }
 ]
 
@@ -119,16 +87,16 @@ async function refreshCurrentUser() {
             ...cur,
             role: fresh.role,
             name: fresh.name,
-            isAdmin: !!fresh.isAdmin
+            isAdmin: !!fresh.isAdmin,
+            companyName: fresh.companyName
         }
-        const watchedKeys = ["role", "name", "isAdmin"]
+        const watchedKeys = ["role", "name", "isAdmin", "companyName"]
         const changed = watchedKeys.some((k) => JSON.stringify(cur[k]) !== JSON.stringify(merged[k]))
         if (!changed) return
         localStorage.setItem("user", JSON.stringify(merged))
         try {
             window.dispatchEvent(new StorageEvent("storage", { key: "user" }))
         } catch {
-
             const ev = new Event("storage")
             ev.key = "user"
             window.dispatchEvent(ev)
@@ -136,30 +104,12 @@ async function refreshCurrentUser() {
     } catch (e) {
         const status = e?.response?.status
 
-        if (status === 404) {
-            try {
-                window.location.replace("/#/auth/access?reason=session")
-            } catch {
-
-            }
-        }
+        // Полный выход с перезагрузкой: фильтры разделов и состояние push не должны достаться следующему пользователю.
+        if (status === 404) authService.logout("/auth/access?reason=session")
     }
 }
 
-function handleCompanyShutdown() {
-    try {
-        Cookies.remove("accessToken")
-        Cookies.remove("refreshToken")
-        localStorage.removeItem("user")
-    } catch {
-
-    }
-    try {
-        window.location.replace("/#/auth/login")
-    } catch {
-
-    }
-}
+const handleCompanyShutdown = () => authService.logout()
 
 function enqueueInvalidation(type) {
     pendingTypes.add(type)
@@ -215,15 +165,14 @@ export function useRealtime() {
                 }
                 enqueueInvalidation(type)
             } catch {
-
+                // сообщение не разобрать — пропускаем
             }
         }
         es.onerror = () => {
-
             try {
                 es && es.close()
             } catch {
-
+                // соединение уже закрыто
             }
             es = null
             scheduleReconnect()
@@ -242,7 +191,7 @@ export function useRealtime() {
         try {
             es && es.close()
         } catch {
-
+            // соединение уже закрыто
         }
         es = null
     })

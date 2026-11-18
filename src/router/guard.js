@@ -3,51 +3,21 @@
  * Licensed under Apache 2.0
  */
 
-import router from '@/router';
-import Cookies from 'js-cookie';
+import { useSession } from "@/composables/useSession"
+import router from "@/router"
+import Cookies from "js-cookie"
 
-function loadUser() {
-    try {
-        return JSON.parse(localStorage.getItem('user') || 'null');
-    } catch {
-        return null;
-    }
-}
+const { user, can, isSuper } = useSession()
 
-const SUPER_ADMIN_ALLOWED = new Set(['/companies', '/auth/login', '/auth/access', '/auth/error']);
+router.beforeEach((to) => {
+    if (!to.matched.some((r) => r.meta.requiresAuth)) return true
+    if (!Cookies.get("refreshToken") || !Cookies.get("accessToken") || !user.value) return "/auth/login"
 
-router.beforeEach((to, from, next) => {
-    const isAuthenticated = Cookies.get('refreshToken') && Cookies.get('accessToken');
+    // Супер-админу доступны только разделы платформы; остальным они закрыты.
+    if (isSuper.value) return to.meta.superAdmin ? true : "/companies"
+    if (to.meta.superAdmin) return "/auth/access"
 
-    if (to.matched.some((record) => record.meta.requiresAuth)) {
-        if (!isAuthenticated) {
-            return next('/auth/login');
-        }
-        const user = loadUser();
-        if (!user) return next('/auth/login');
-
-        if (user.isSuperAdmin) {
-            const path = to.path.replace(/\/$/, '') || '/';
-            const allowedRoots = ['/companies', '/seeds', '/observability']
-            const allowed = allowedRoots.some((r) => path === r || path.startsWith(r + '/'))
-            if (!allowed) {
-                return next('/companies');
-            }
-            return next();
-        }
-
-        if (to.meta?.superAdmin) {
-            return next('/auth/access');
-        }
-
-        const requiredPermission = to.meta?.permission;
-        if (requiredPermission) {
-            const perms = user.role?.permissions || [];
-            const list = Array.isArray(requiredPermission) ? requiredPermission : [requiredPermission];
-            const ok = list.some((p) => perms.includes(p));
-            if (!ok) return next('/auth/access');
-        }
-        return next();
-    }
-    return next();
-});
+    const need = to.meta.permission
+    if (need && ![].concat(need).some((p) => can(p))) return "/auth/access"
+    return true
+})

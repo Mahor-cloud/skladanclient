@@ -354,7 +354,8 @@ input[type="search"]::-webkit-search-cancel-button { display: none; }
   .page-head__row { display: flex; align-items: flex-end; justify-content: space-between; gap: var(--sp-6); }
   .page-head h1 { font-size: var(--fs-34); font-weight: var(--fw-heavy); }
   .page-head p { color: var(--text-2); margin-top: var(--sp-3); font-size: var(--fs-15); }
-  .page-head__a { display: flex; gap: var(--sp-4); align-items: center; }
+  /* Кнопки, не поместившиеся в строку с заголовком, переносятся на вторую — страница не уезжает вбок */
+  .page-head__a { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: var(--sp-4); align-items: center; }
 }
 .crumbs { display: flex; gap: var(--sp-3); align-items: center; font-size: var(--fs-14); color: var(--text-2); font-weight: var(--fw-medium); margin-bottom: var(--sp-4); }
 .crumbs a:hover { color: var(--primary-text); }

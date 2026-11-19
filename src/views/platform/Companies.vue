@@ -95,6 +95,36 @@ async function changePass() {
 /* ---------- Экспорт и импорт всей базы ---------- */
 const exporting = ref(false)
 const importing = ref(false)
+const backing = ref(false)
+// Полный бэкап: сервер снимает свежую копию базы (как mongodump), прежнюю удаляет и отдаёт файл. Дополнительно к бэкапу по расписанию.
+async function backupDb() {
+    backing.value = true
+    try {
+        // Тело — пустой объект: запросы приложения идут как JSON, а «ничего» сервер за JSON не принимает
+        const res = await axiosInstance.post("/database/backup", {}, { responseType: "blob" })
+        const name = /filename="([^"]+)"/.exec(res.headers?.["content-disposition"] || "")?.[1] || "skladan-backup.tar"
+        const url = URL.createObjectURL(res.data)
+        const a = document.createElement("a")
+        a.href = url
+        a.download = name
+        document.body.appendChild(a)
+        a.click()
+        a.remove()
+        URL.revokeObjectURL(url)
+        toast({ type: "success", title: "Бэкап готов", text: `${name} · ${(res.data.size / 1048576).toFixed(1).replace(".", ",")} МБ` })
+    } catch (e) {
+        // При таком запросе и отказ сервера приходит файлом — текст отказа читается из него
+        let text = errText(e)
+        try {
+            if (e?.response?.data instanceof Blob) text = JSON.parse(await e.response.data.text()).message || text
+        } catch {
+            // не JSON — остаётся общий текст
+        }
+        toast({ type: "error", title: "Бэкап не создан", text })
+    } finally {
+        backing.value = false
+    }
+}
 async function exportDb() {
     exporting.value = true
     try {
@@ -159,6 +189,7 @@ async function importDb(ev) {
     <UiPage v-else title="Компании" :sub="sub">
         <template #actions><UiIconBtn icon="plus" label="Новая компания" kind="primary" :to="{ name: 'company-new' }" /></template>
         <template #deskActions>
+            <UiBtn label="Полный бэкап БД" icon="layers" kind="outline" :loading="backing" @click="backupDb" />
             <UiBtn label="Экспорт всей БД" icon="download" kind="outline" :loading="exporting" @click="exportDb" />
             <label class="btn btn--outline btn--md"
                 ><span v-if="importing" class="spin" aria-hidden="true"></span><UiIcon v-else name="install" /><span class="btn__l">Импорт всей БД</span
@@ -207,6 +238,7 @@ async function importDb(ev) {
             </article>
         </div>
         <div class="mobonly cos__db" style="flex-direction: column; gap: var(--sp-3)">
+            <UiBtn label="Полный бэкап БД" icon="layers" kind="outline" block :loading="backing" @click="backupDb" />
             <UiBtn label="Экспорт всей БД" icon="download" kind="outline" block :loading="exporting" @click="exportDb" />
             <label class="btn btn--outline btn--md btn--block"
                 ><span v-if="importing" class="spin" aria-hidden="true"></span><UiIcon v-else name="install" /><span class="btn__l">Импорт всей БД</span

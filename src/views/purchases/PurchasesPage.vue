@@ -40,6 +40,7 @@ const all = computed(() =>
 )
 
 const PF = {
+    all: { label: "Все", fn: () => true },
     active: { label: "В работе", fn: (x) => x.st !== "done" },
     draft: { label: "Черновики", fn: (x) => x.st === "draft" },
     unpaid: { label: "Ждут оплаты", fn: (x) => x.st === "unpaid" },
@@ -51,7 +52,8 @@ const f = computed(() => ls.f || (can("approve-payment") && !can("create_purchas
 const list = computed(() => {
     const q = ls.q.trim().toLowerCase()
     const no = q.replace(/[№#]/g, "")
-    let l = all.value.filter(PF[f.value].fn)
+    // Поиск идёт по всем закупкам, какой бы фильтр ни стоял
+    let l = q ? all.value : all.value.filter(PF[f.value].fn)
     // Как в прежнем списке, ищется и по создателю и дате.
     if (q) l = l.filter((x) => String(x.pu.purchaseNumber).includes(no) || `${x.pu.user?.name || ""} ${date(x.pu.purchaseDate)}`.toLowerCase().includes(q) || x.covers.some((p) => (p.name || "").toLowerCase().includes(q)))
     return l
@@ -134,7 +136,7 @@ async function create(yes) {
         </div>
         <div class="listtools">
             <div class="filterbar" role="group" aria-label="Фильтр закупок">
-                <UiChip v-for="(v, k) in PF" :key="k" :label="v.label" :count="all.filter(v.fn).length" :active="f === k" :tone="k === 'unpaid' && can('approve-payment') ? 'accent' : ''" @click="ls.f = k" />
+                <UiChip v-for="(v, k) in PF" :key="k" :label="v.label" :count="all.filter(v.fn).length" :active="(ls.q.trim() ? 'all' : f) === k" :tone="k === 'unpaid' && can('approve-payment') ? 'accent' : ''" @click="(ls.f = k), (ls.q = '')" />
             </div>
             <form class="msearch__f lsearch" role="search" @submit.prevent="$event.target.querySelector('input').blur()">
                 <UiIcon name="search" />

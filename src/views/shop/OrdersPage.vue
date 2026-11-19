@@ -52,7 +52,7 @@ const rows = computed(() => {
 /* ---------- Фильтр по статусу, поиск ---------- */
 const pay = computed(() => isStaff.value && can("approve-payment"))
 const stock = computed(() => isStaff.value && can("edit_products"))
-const keys = computed(() => (isStaff.value ? ["paid", "ready", "new", "active", "done"] : ["active", "done"]))
+const keys = computed(() => (isStaff.value ? ["all", "paid", "ready", "new", "active", "done"] : ["all", "active", "done"]))
 watch(
     () => route.query.f,
     (f) => FILTERS[f] && (view.f = f),
@@ -60,8 +60,17 @@ watch(
 )
 // Без выбора: казначею — оплаты к подтверждению, кладовщику — выдача, остальным — все активные.
 const filter = computed(() => (keys.value.includes(view.f) ? view.f : !isStaff.value ? "active" : pay.value && !stock.value ? "paid" : stock.value && !pay.value ? "ready" : "active"))
+// Поиск идёт по всем заказам, какой бы фильтр ни стоял; выбор фильтра поиск заканчивает.
+const shown = computed(() => (view.q.trim() ? "all" : filter.value))
+// …и по давним тоже: первый же запрос догружает весь список (без поиска грузятся завершённые за 90 дней)
+watch(
+    () => !!view.q.trim(),
+    (searching) => searching && (view.all = true),
+    { immediate: true }
+)
 function setFilter(f) {
     view.f = f
+    view.q = ""
     if (route.query.f) router.replace({ query: { ...route.query, f: undefined } })
 }
 const counts = computed(() => Object.fromEntries(keys.value.map((k) => [k, rows.value.filter((r) => FILTERS[k].fn(r.o)).length])))
@@ -72,17 +81,17 @@ const found = computed(() => {
         .split(/\s+/)
         .filter(Boolean)
         .map((t) => t.replace(/^#/, "№"))
-    let list = rows.value.filter((r) => FILTERS[filter.value].fn(r.o))
+    let list = rows.value.filter((r) => FILTERS[shown.value].fn(r.o))
     if (terms.length)
         list = list.filter((r) => {
             const names = r.o.items.map((it) => byId.value.get(pid(it))?.name || "")
             const hay = [r.o.orderNumber, "№" + r.o.orderNumber, r.o.user?.name || "", STATUS[r.st].label, r.turn.short, r.total, money(r.total), date(r.o.orderDate), ...names].join(" ").toLowerCase()
             return terms.every((t) => hay.includes(t))
         })
-    const mineFirst = isStaff.value && filter.value !== "done"
+    const mineFirst = isStaff.value && shown.value !== "done"
     return list.sort((a, b) => (mineFirst ? b.turn.mine - a.turn.mine : 0) || b.o.orderDate - a.o.orderDate)
 })
-const resetKey = computed(() => filter.value + "~" + view.q)
+const resetKey = computed(() => shown.value + "~" + view.q)
 const sub = computed(() => {
     if (!isStaff.value) return `Группа «${user.value?.name}»`
     const act = rows.value.filter((r) => !r.o.isCompleted)
@@ -134,7 +143,7 @@ const sub = computed(() => {
             </template>
             <div class="listtools">
                 <div class="filterbar" role="group" aria-label="Фильтр по статусу">
-                    <UiChip v-for="k in keys" :key="k" :label="FILTERS[k].label" :count="counts[k]" :active="filter === k" :tone="k === 'paid' && pay && !stock ? 'accent' : ''" @click="setFilter(k)" />
+                    <UiChip v-for="k in keys" :key="k" :label="FILTERS[k].label" :count="counts[k]" :active="shown === k" :tone="k === 'paid' && pay && !stock ? 'accent' : ''" @click="setFilter(k)" />
                 </div>
                 <form class="msearch__f" role="search" style="height: 48px" @submit.prevent="$event.target.querySelector('input').blur()">
                     <UiIcon name="search" />
@@ -166,7 +175,7 @@ const sub = computed(() => {
                     </UiLazy>
                 </div>
             </div>
-            <p v-if="!view.all && (filter === 'done' || !rows.length)" class="listnote">
+            <p v-if="!view.all && (shown === 'done' || shown === 'all' || !rows.length)" class="listnote">
                 <span>Показаны завершённые за 3 месяца.</span>
                 <UiBtn label="Показать все" icon="history" kind="ghost" size="sm" @click="view.all = true" />
             </p>

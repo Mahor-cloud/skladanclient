@@ -12,6 +12,7 @@ import { reactive } from "vue"
 export const view = reactive({ f: "", q: "", all: false })
 
 export const FILTERS = {
+    all: { label: "Все", fn: () => true },
     active: { label: "Все активные", fn: (o) => !o.isCompleted },
     new: { label: "Новые", fn: (o) => orderStatus(o) === "new" },
     paid: { label: "Ждут подтверждения", fn: (o) => orderStatus(o) === "paid" },

@@ -236,6 +236,6 @@ describe("фильтры списка", () => {
     it("каждый заказ попадает в свой статус; активные — все незавершённые", () => {
         const list = [order(), order({ isPaid: true }), order({ isPaid: true, confirmedPaid: true }), order({ isPaid: true, confirmedPaid: true, isCompleted: true })]
         const count = (k) => list.filter(FILTERS[k].fn).length
-        expect(["new", "paid", "ready", "done", "active"].map(count)).toEqual([1, 1, 1, 1, 3])
+        expect(["new", "paid", "ready", "done", "active", "all"].map(count)).toEqual([1, 1, 1, 1, 3, 4])
     })
 })

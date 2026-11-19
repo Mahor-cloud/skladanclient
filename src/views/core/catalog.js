@@ -5,10 +5,16 @@
 
 import { pcs } from "@/domain/format"
 import { physical, stockLevel } from "@/domain/stock"
-import { reactive } from "vue"
+import { reactive, watch } from "vue"
 
 // Поиск и фильтры каталога живут, пока открыто приложение: вернулся из заказа — список тот же.
-export const filters = reactive({ q: "", kinds: [], avail: false, incoming: false, min: "", max: "", sort: "default", view: null })
+// «В наличии» включено с самого начала; «Сбросить» показывает всё.
+export const filters = reactive({ q: "", kinds: [], avail: true, incoming: false, min: "", max: "", sort: "default", view: null })
+// «Ждёт поставку» — это как раз то, чего нет в наличии: вместе с «В наличии» список был бы пуст.
+watch(
+    () => filters.incoming,
+    (on) => on && (filters.avail = false)
+)
 export const filtersActive = () => filters.kinds.length + (filters.avail ? 1 : 0) + (filters.incoming ? 1 : 0) + (filters.min !== "" || filters.max !== "" ? 1 : 0)
 export const resetFilters = (withSearch) => Object.assign(filters, { kinds: [], avail: false, incoming: false, min: "", max: "" }, withSearch ? { q: "" } : {})
 

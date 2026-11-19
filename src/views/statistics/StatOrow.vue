@@ -12,7 +12,7 @@ defineProps({ o: { type: Object, required: true } })
 </script>
 
 <template>
-    <button type="button" class="sorow" @click="peek({ name: 'order', params: { id: o._id } }, { readonly: true })">
+    <button type="button" class="sorow" data-track="→ Заказ" @click="peek({ name: 'order', params: { id: o._id } }, { readonly: true })">
         <span class="sorow__n">№{{ o.orderNumber }}</span>
         <span class="sorow__u"
             ><UiAvatar :user="o.user" size="sm" /><b>{{ o.user?.name || o.user?.login || "—" }}</b></span

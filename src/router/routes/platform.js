@@ -3,7 +3,7 @@
  * Licensed under Apache 2.0
  */
 
-// Разделы супер-админа: компании, семена, метрики. meta.superAdmin — остальным «Сюда нельзя».
+// Разделы супер-админа: компании, семена, метрики, использование. meta.superAdmin — остальным «Сюда нельзя».
 export default [
     {
         path: "companies",
@@ -22,5 +22,6 @@ export default [
         component: () => import("@/views/platform/Metrics.vue"),
         meta: { nav: "metrics", title: "Метрики", superAdmin: true },
         children: [{ path: "help/:k", name: "metrics-help", component: () => import("@/views/platform/MetricHelp.vue"), props: true }]
-    }
+    },
+    { path: "usage", name: "usage", component: () => import("@/views/platform/Usage.vue"), meta: { nav: "usage", title: "Использование", superAdmin: true } }
 ]

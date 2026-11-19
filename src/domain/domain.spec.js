@@ -252,7 +252,7 @@ describe("разделы", () => {
     const ids = (list) => list.map((n) => n.id)
     it("видны по правам; супер-админ не видит рабочих разделов", () => {
         expect(ids(visibleNav(s(["view_orders", "cabinet_access"])))).toEqual(["storage", "orders", "cabinet"])
-        expect(ids(visibleNav(s([], { isSuper: true })))).toEqual(["companies", "seeds", "metrics"])
+        expect(ids(visibleNav(s([], { isSuper: true })))).toEqual(["companies", "seeds", "metrics", "usage"])
         expect(ids(visibleNav(s([], { isStaff: true })))).toEqual(["storage", "admin"])
     })
     it("нижнее меню: авто по приоритету или набор роли, не больше четырёх и только доступное", () => {

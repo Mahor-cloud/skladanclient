@@ -181,7 +181,7 @@ const beforeClose = async () => !dirty.value || !!(await confirm({ title: "За�
             </div>
             <div class="field" :class="{ 'is-invalid': err.role }">
                 <span class="field__label">Роль</span>
-                <div class="rpicks" role="radiogroup" aria-label="Роль">
+                <div class="rpicks" role="radiogroup" aria-label="Роль" data-track="Роль пользователя">
                     <label v-for="r in roles" :key="r._id" class="rpick" :class="{ 'is-disabled': sys && r._id !== d.role }"
                         ><input v-model="d.role" type="radio" name="role" :value="r._id" :disabled="sys || ro" @change="touch('role')" /><span class="rpick__b"
                             ><b>{{ r.isSystem ? r.name + " · председатель" : r.name }}</b

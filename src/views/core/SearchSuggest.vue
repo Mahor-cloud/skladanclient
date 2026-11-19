@@ -26,7 +26,7 @@ const note = (p) => `${p.category} · ${available(p) > 0 ? "в наличии " 
         <template v-if="!q.trim()">
             <div v-if="history.length" class="sugg__sec">
                 <h4>Вы искали</h4>
-                <div class="sugg__chips"><UiChip v-for="h in history" :key="h" class="chip--sm" icon="history" :label="h" @click="$emit('search', h)" /></div>
+                <div class="sugg__chips"><UiChip v-for="h in history" :key="h" class="chip--sm" icon="history" :label="h" data-track="Вы искали" @click="$emit('search', h)" /></div>
             </div>
             <div class="sugg__sec">
                 <h4>Виды</h4>
@@ -36,7 +36,7 @@ const note = (p) => `${p.category} · ${available(p) > 0 ? "в наличии " 
         <div v-else-if="!hits.length" class="sugg__none">Ничего не нашли по «{{ q.trim() }}»</div>
         <template v-else>
             <div class="sugg__sec">
-                <button v-for="p in hits" :key="p._id" type="button" class="sugg__p" @click="$emit('product', p)">
+                <button v-for="p in hits" :key="p._id" type="button" class="sugg__p" data-track="Товар из подсказки" @click="$emit('product', p)">
                     <UiCover :product="p" size="xs" />
                     <span class="sugg__n"
                         ><template v-for="(part, i) in marked(p.name)" :key="i"

@@ -496,7 +496,7 @@ function pick(p) {
                     <label class="msearch__f"><UiIcon name="plus" /><input v-model="addQ" type="search" name="q" placeholder="Начните вводить название" aria-label="Добавить позицию" autocomplete="off" /></label>
                     <div>
                         <div v-if="hits.length" class="sugg sugg--inline">
-                            <button v-for="p in hits" :key="p._id" type="button" class="sugg__p" :disabled="have.has(p._id)" @click="pick(p)">
+                            <button v-for="p in hits" :key="p._id" type="button" class="sugg__p" data-track="Товар из подсказки" :disabled="have.has(p._id)" @click="pick(p)">
                                 <UiCover :product="p" size="xs" /><span class="sugg__n"
                                     >{{ p.name }}<small>{{ have.has(p._id) ? "уже в закупке" : `склад ${physical(p)} · цель ${p.targetQty || "—"}` }}</small></span
                                 ><b>{{ money(p.price) }}</b>

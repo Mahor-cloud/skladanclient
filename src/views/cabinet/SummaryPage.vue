@@ -231,7 +231,7 @@ const GCOLS = "40px minmax(0,2.4fr) 80px 80px 96px minmax(0,1fr)"
             <div class="listtools listtools--sum">
                 <div class="filterbar" role="group" aria-label="Группы">
                     <UiChip label="Все группы" :active="!sel.length" @click="pick('')" />
-                    <UiChip v-for="g in groups" :key="g.user._id" :label="g.user.name" :active="sel.includes(g.user._id)" @click="pick(g.user._id)" />
+                    <UiChip v-for="g in groups" :key="g.user._id" :label="g.user.name" :active="sel.includes(g.user._id)" data-track="Группа" @click="pick(g.user._id)" />
                 </div>
                 <form class="msearch__f lsearch" role="search" @submit.prevent="$event.target.querySelector('input').blur()">
                     <UiIcon name="search" :size="20" />
@@ -241,7 +241,7 @@ const GCOLS = "40px minmax(0,2.4fr) 80px 80px 96px minmax(0,1fr)"
             </div>
             <div class="grps">
                 <details v-for="g in cards" :key="g.user._id" class="card grp" :open="filtered || opened.has(g.user._id)" @toggle="onToggle(g.user._id, $event)">
-                    <summary>
+                    <summary data-track="Карточка группы">
                         <UiAvatar :user="g.user" />
                         <span class="grp__t"
                             ><b>{{ g.user.name }}</b

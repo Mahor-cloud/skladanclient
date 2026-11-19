@@ -146,7 +146,7 @@ async function save() {
                         <div class="irow__e">
                             <UiStepper v-model="x.qty" :min="1" :max="maxFor(x.p)" :label="'Количество: ' + x.p.name" @clamped="clamped(x.p, $event)" />
                             <span class="irow__s">{{ money(x.p.price * x.qty) }}</span>
-                            <UiIconBtn icon="trash" :label="'Убрать ' + x.p.name" @click="drop(i)" />
+                            <UiIconBtn icon="trash" :label="'Убрать ' + x.p.name" data-track="Убрать товар" @click="drop(i)" />
                         </div>
                     </div>
                     <div class="addrow">
@@ -154,7 +154,7 @@ async function save() {
                         <label class="msearch__f"><UiIcon name="plus" /><input v-model="q" type="search" name="q" placeholder="Выберите товар" aria-label="Добавить товар" autocomplete="off" /></label>
                         <div v-if="q.trim()">
                             <div v-if="hits.length" class="sugg sugg--inline">
-                                <button v-for="p in hits" :key="p._id" type="button" class="sugg__p" :disabled="has(p) || room(p) <= 0" @click="add(p)">
+                                <button v-for="p in hits" :key="p._id" type="button" class="sugg__p" data-track="Товар из подсказки" :disabled="has(p) || room(p) <= 0" @click="add(p)">
                                     <UiCover :product="p" size="xs" />
                                     <span class="sugg__n"
                                         >{{ p.name }}<small>{{ has(p) ? "уже в заказе" : room(p) > 0 ? `в наличии ${room(p)}` : "нет в наличии" }}</small></span

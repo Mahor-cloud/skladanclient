@@ -549,6 +549,31 @@ a.hit:hover { background: color-mix(in oklab, var(--surface-2) 55%, var(--surfac
   .disc__r b { grid-column: auto; grid-row: auto; align-self: stretch; font-size: var(--fs-14); }
   .disc > p { grid-column: 1 / -1; }
 }
+/* Таблицы «Использования». Телефон: строка в два этажа — название и главное число, под ними остальные числа с подписями.
+   С 900 px — таблица одной сеткой (на 600–900 пяти колонкам чисел тесно); --n — число колонок с числами. */
+.utbl { display: grid; }
+.utbl__h { display: none; }
+.utbl__r { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: var(--sp-2) var(--sp-6); align-items: baseline; padding: var(--sp-5) 0; border-bottom: 1px solid var(--line); font-size: var(--fs-14); font-variant-numeric: tabular-nums; }
+.utbl__n { min-width: 0; font-weight: var(--fw-medium); overflow-wrap: anywhere; }
+.utbl__n small { display: block; font-size: var(--fs-12); font-weight: var(--fw-regular); color: var(--text-2); }
+.utbl__n button { min-height: 0; padding: 0; text-align: left; font-weight: var(--fw-bold); color: var(--primary-text); }
+.utbl__r > b { grid-column: 2; grid-row: 1; font-size: var(--fs-16); font-weight: var(--fw-heavy); white-space: nowrap; text-align: right; }
+/* На телефоне шапки нет — главное число подписано само */
+.utbl__r > b[data-l]::before { content: attr(data-l); display: block; font-size: var(--fs-11); font-weight: var(--fw-regular); color: var(--text-2); }
+.utbl__vs { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: var(--sp-1) var(--sp-6); font-weight: var(--fw-bold); }
+.utbl__vs small { margin-right: var(--sp-3); font-size: var(--fs-12); font-weight: var(--fw-regular); color: var(--text-2); }
+.utbl > p { padding-top: var(--sp-4); }
+@media (min-width: 900px) {
+  .utbl { grid-template-columns: minmax(0, 1fr) repeat(var(--n, 3), auto); }
+  .utbl__h, .utbl__r, .utbl__vs { display: contents; }
+  .utbl__h > span, .utbl__n, .utbl__vs > span, .utbl__r > b { display: flex; align-items: center; justify-content: flex-end; padding: var(--sp-4) 0 var(--sp-4) var(--sp-8); border-bottom: 1px solid var(--line); white-space: nowrap; }
+  .utbl__h > span { padding-top: 0; font-size: var(--fs-12); font-weight: var(--fw-heavy); color: var(--text-2); text-transform: uppercase; letter-spacing: var(--ls-caps); }
+  .utbl__h > span:first-child, .utbl__n { display: block; padding-left: 0; white-space: normal; }
+  .utbl__vs small { display: none; }
+  .utbl__r > b { grid-column: auto; grid-row: auto; font-size: var(--fs-14); }
+  .utbl__r > b[data-l]::before { content: none; }
+  .utbl > p { grid-column: 1 / -1; }
+}
 .morebtn { display: inline-flex; align-items: center; gap: var(--sp-2); min-height: var(--tap); margin-top: var(--sp-3); color: var(--primary-text); font-weight: var(--fw-bold); font-size: var(--fs-14); }
 .sorders { padding-bottom: var(--sp-3); }
 .sorders .sblk__h { margin-bottom: var(--sp-4); }

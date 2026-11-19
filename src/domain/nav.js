@@ -17,7 +17,8 @@ export const NAV = [
     { id: "history", label: "История", icon: "history", path: "/history", group: "Аналитика", show: (s) => s.can("view_change_history") },
     { id: "companies", label: "Компании", icon: "globe", path: "/companies", group: "Платформа", show: (s) => s.isSuper },
     { id: "seeds", label: "Семена", icon: "sprout", path: "/seeds", group: "Платформа", show: (s) => s.isSuper },
-    { id: "metrics", label: "Метрики", icon: "pulse", path: "/observability", group: "Платформа", show: (s) => s.isSuper }
+    { id: "metrics", label: "Метрики", icon: "pulse", path: "/observability", group: "Платформа", show: (s) => s.isSuper },
+    { id: "usage", label: "Использование", icon: "eye", path: "/usage", group: "Платформа", show: (s) => s.isSuper }
 ]
 export const visibleNav = (s) => NAV.filter((n) => n.show(s))
 

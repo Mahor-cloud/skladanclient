@@ -390,7 +390,7 @@ async function exportCsv() {
             <label class="msearch__f" style="margin-bottom: var(--sp-5)"
                 ><UiIcon name="search" /><input v-model="pickQ" type="search" name="q" :placeholder="pick === 'groups' ? 'Найти группу' : 'Найти товар'" aria-label="Поиск" autocomplete="off"
             /></label>
-            <div class="picks">
+            <div class="picks" :data-track="pick === 'groups' ? 'Группа в отборе' : 'Товар в отборе'">
                 <UiLazy v-slot="{ item: x }" :items="pickList" :size="30" :reset-key="pick + pickQ">
                     <label class="pick"
                         ><input v-model="picked" type="checkbox" :value="x._id" /><span class="check__box" aria-hidden="true"><UiIcon name="check" :size="16" /></span><UiAvatar v-if="x.user" :user="x.user" size="sm" /><UiCover

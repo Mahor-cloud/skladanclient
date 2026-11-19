@@ -54,7 +54,7 @@ const own = computed(() =>
 <template>
     <div class="rsum" :class="{ 'rsum--inline': inline }">
         <div class="rtiles">
-            <button v-for="t in tiles" :key="t.label" type="button" class="rtile" :class="t.tone && 'rtile--' + t.tone" @click="$emit('filter', t.f)">
+            <button v-for="t in tiles" :key="t.label" type="button" class="rtile" :class="t.tone && 'rtile--' + t.tone" :data-track="'Плитка: ' + t.label" @click="$emit('filter', t.f)">
                 <small>{{ t.label }}</small
                 ><b>{{ t.n }}</b
                 ><span>{{ t.sub }}</span>

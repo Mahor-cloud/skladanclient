@@ -3,6 +3,7 @@
  * Licensed under Apache 2.0
  */
 
+import { track } from "@/service/usage"
 import { shallowReactive } from "vue"
 import { pane } from "./pane"
 
@@ -44,6 +45,7 @@ let seq = 0
 
 /** toast({ type: success|warning|error|info, title, text, action: { label, fn }, timeout }) → { close } */
 export function toast({ type = "success", title, text, action, timeout } = {}) {
+    if (type === "error") track("error", title)
     const t = shallowReactive({ id: ++seq, type, title, text, action, shown: false })
     t.close = () => {
         clearTimeout(t.timer)

@@ -3,12 +3,16 @@
  * Copyright 2026 Lord_mahor
  * Licensed under Apache 2.0
  */
+import { track } from "@/service/usage"
+import { onMounted } from "vue"
+
 // Пустое состояние с рисунком. art: box | search | error. Слот — кнопки действий.
-defineProps({
+const props = defineProps({
     art: { type: String, default: "box" },
     title: { type: String, required: true },
     text: { type: String, default: "" }
 })
+onMounted(() => track(props.art === "error" ? "error" : "empty", props.title))
 const TAGS = [
     [92, "#CFC06A", -18],
     [108, "#3F7F63", 6],

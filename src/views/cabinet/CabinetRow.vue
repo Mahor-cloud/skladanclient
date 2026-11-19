@@ -32,7 +32,7 @@ const cov = computed(() => props.p || { _id: props.r.productId, name: props.r.pr
         </span>
         <div class="trow__main">
             <span class="trow__n">
-                <button v-if="r.isCustom" type="button" class="linkbtn" @click="edit(r)">
+                <button v-if="r.isCustom" type="button" class="linkbtn" data-track="Своя позиция" @click="edit(r)">
                     <i>{{ r.productName }}</i> <span class="muted">(своя)</span>
                 </button>
                 <template v-else>{{ r.productName }}</template>

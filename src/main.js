@@ -21,11 +21,13 @@ import { createApp } from "vue"
 import App from "./App.vue"
 import router from "./router"
 import "./router/guard"
+import { startUsage } from "./service/usage"
 
 const app = createApp(App)
 app.use(router)
 app.use(VueQueryPlugin, { queryClient })
 bindPaneRouter(router)
+startUsage(router)
 installTilt()
 
 registerSW({

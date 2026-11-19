@@ -283,9 +283,11 @@ async function exportCsv() {
                     <div class="disc">
                         <div class="disc__h" aria-hidden="true"><span>Товар</span><span>Получено</span><span>Продано</span><span>Δ</span></div>
                         <div v-for="x in more('d', disc)" :key="x.productId" class="disc__r">
-                            <UiCover :product="prod(x)" size="xs" /><span class="disc__n">{{ x.name }}</span
-                            ><span>{{ x.received }}</span
-                            ><span>{{ x.sold }}</span
+                            <span class="disc__c"><UiCover :product="prod(x)" size="xs" /></span
+                            ><span class="disc__n"
+                                ><span>{{ x.name }}</span></span
+                            ><span class="disc__v"><small>Получено</small>{{ x.received }}</span
+                            ><span class="disc__v"><small>Продано</small>{{ x.sold }}</span
                             ><b :class="x.gap > 0 ? 'info' : x.gap < 0 ? 'neg' : 'pos'">{{ x.gap > 0 ? "+" : x.gap < 0 ? "−" : "" }}{{ Math.abs(x.gap) }}</b>
                         </div>
                         <p v-if="!disc.length" class="muted">Нет движения товара за период.</p>

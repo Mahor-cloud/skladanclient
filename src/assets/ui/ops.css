@@ -522,15 +522,33 @@ a.hit:hover { background: color-mix(in oklab, var(--surface-2) 55%, var(--surfac
 .pillsum { display: inline-flex; align-items: center; gap: var(--sp-2); height: 28px; padding: 0 var(--sp-4); border-radius: var(--r-pill); font-size: var(--fs-13); font-weight: var(--fw-heavy); white-space: nowrap; }
 .pillsum--s { background: var(--primary-soft); color: var(--primary-text); }
 .pillsum--r { background: var(--success-soft); color: var(--success-text); }
+/* Расхождения. Телефон: трём колонкам чисел с подписями на 390 px тесно, поэтому строка в два этажа —
+   название, под ним «получено · продано», разница справа. С 600 px — таблица: одна сетка на все строки
+   (строки — display: contents), колонки чисел шириной по самой длинной подписи или числу. */
 .disc { display: grid; }
-.disc__h, .disc__r { display: grid; grid-template-columns: minmax(0, 1fr) 56px 56px 50px; gap: var(--sp-4); align-items: center; }
-.disc__h { font-size: var(--fs-12); font-weight: var(--fw-heavy); color: var(--text-2); text-transform: uppercase; letter-spacing: var(--ls-caps); padding-bottom: var(--sp-3); border-bottom: 1px solid var(--line); }
-.disc__h span:nth-child(n+2), .disc__r > :nth-child(n+3) { text-align: right; }
-.disc__r { padding: var(--sp-3) 0; border-bottom: 1px solid var(--line); font-size: var(--fs-14); font-weight: var(--fw-bold); }
-.disc__r .cover { display: none; }
-.disc__n { font-weight: var(--fw-medium); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.disc__r b { font-weight: var(--fw-heavy); }
-@media (min-width: 600px) { .disc__h, .disc__r { grid-template-columns: 36px minmax(0, 1fr) 72px 72px 56px; } .disc__h span:first-child { grid-column: span 2; } .disc__r .cover { display: grid; } }
+.disc__h { display: none; }
+.disc__r { display: grid; grid-template-columns: auto auto minmax(0, 1fr) auto; column-gap: var(--sp-6); row-gap: var(--sp-1); align-items: baseline; padding: var(--sp-5) 0; border-bottom: 1px solid var(--line); font-size: var(--fs-14); font-weight: var(--fw-bold); font-variant-numeric: tabular-nums; }
+.disc__c { display: none; }
+.disc__n { grid-column: 1 / 4; min-width: 0; font-weight: var(--fw-medium); }
+/* Обрезка — на вложенном элементе: у ячейки таблицы есть отступы, и третья строка выглядывала бы в нижнем */
+.disc__n > span { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; overflow: hidden; overflow-wrap: anywhere; }
+.disc__v { grid-row: 2; white-space: nowrap; }
+.disc__v small { margin-right: var(--sp-3); font-size: var(--fs-12); font-weight: var(--fw-regular); color: var(--text-2); }
+.disc__r b { grid-column: 4; grid-row: 1 / 3; align-self: center; font-size: var(--fs-16); font-weight: var(--fw-heavy); }
+.disc > p { padding-top: var(--sp-4); }
+@media (min-width: 600px) {
+  .disc { grid-template-columns: 36px minmax(0, 1fr) auto auto auto; }
+  .disc__h, .disc__r { display: contents; }
+  .disc__h > span, .disc__r > * { grid-column: auto; grid-row: auto; align-self: stretch; padding: var(--sp-4) 0; border-bottom: 1px solid var(--line); }
+  .disc__h > span { padding-top: 0; font-size: var(--fs-12); font-weight: var(--fw-heavy); color: var(--text-2); text-transform: uppercase; letter-spacing: var(--ls-caps); white-space: nowrap; }
+  .disc__h > span:first-child { grid-column: span 2; }
+  .disc__h > span:nth-child(n+2), .disc__r > :nth-child(n+3) { display: flex; align-items: center; justify-content: flex-end; padding-left: var(--sp-8); }
+  .disc__c, .disc__n { display: flex; align-items: center; }
+  .disc__n { padding-left: var(--sp-5); }
+  .disc__v small { display: none; }
+  .disc__r b { grid-column: auto; grid-row: auto; align-self: stretch; font-size: var(--fs-14); }
+  .disc > p { grid-column: 1 / -1; }
+}
 .morebtn { display: inline-flex; align-items: center; gap: var(--sp-2); min-height: var(--tap); margin-top: var(--sp-3); color: var(--primary-text); font-weight: var(--fw-bold); font-size: var(--fs-14); }
 .sorders { padding-bottom: var(--sp-3); }
 .sorders .sblk__h { margin-bottom: var(--sp-4); }

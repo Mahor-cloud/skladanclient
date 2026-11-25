@@ -5,9 +5,9 @@
  */
 import { dateTime } from "@/domain/format"
 import axiosInstance from "@/service/axios"
-import { confirm, toast, UiBtn, UiEmpty, UiError, UiField, UiIconBtn, UiPage, UiSheet, UiSk } from "@/ui"
+import { confirm, toast, UiBtn, UiEmpty, UiError, UiIconBtn, UiPage, UiSk } from "@/ui"
 import { useInfiniteQuery, useQueryClient } from "@tanstack/vue-query"
-import { computed, onBeforeUnmount, ref, watch } from "vue"
+import { computed, onBeforeUnmount, watch } from "vue"
 import { toMark, who } from "./feedback"
 import { errText, useFeedbackUnread } from "./queries"
 
@@ -77,63 +77,15 @@ async function removeAll(read) {
     }
     refresh()
 }
-
-/* ---------- Telegram: бот и получатель — необязательная пересылка. Токен с сервера не приходит — только «сохранён ли» ---------- */
-const tg = ref(null) // { token, chatId, saved, hasToken, saving, testing } пока окно открыто
-const tgOpening = ref(false)
-async function openTg() {
-    tgOpening.value = true
-    try {
-        const { data } = await axiosInstance.get("/feedback/settings")
-        tg.value = { token: "", chatId: data.chatId, saved: data.chatId, hasToken: data.hasToken, saving: false, testing: false }
-    } catch (e) {
-        toast({ type: "error", title: "Ошибка", text: errText(e) })
-    } finally {
-        tgOpening.value = false
-    }
-}
-async function saveTg() {
-    const t = tg.value
-    const body = { chatId: t.chatId.trim() }
-    if (t.token.trim()) body.token = t.token.trim()
-    t.saving = true
-    try {
-        const { data } = await axiosInstance.put("/feedback/settings", body)
-        Object.assign(t, { token: "", chatId: data.chatId, saved: data.chatId, hasToken: data.hasToken })
-        toast({ type: "success", title: "Сохранено" })
-        return true
-    } catch (e) {
-        toast({ type: "error", title: "Не сохранено", text: errText(e) })
-        return false
-    } finally {
-        t.saving = false
-    }
-}
-// Проверяется то, что в полях: несохранённое сначала сохраняется
-async function testTg() {
-    const t = tg.value
-    if ((t.token.trim() || t.chatId.trim() !== t.saved) && !(await saveTg())) return
-    t.testing = true
-    try {
-        await axiosInstance.post("/feedback/settings/test", {})
-        toast({ type: "success", title: "Проверочное сообщение отправлено" })
-    } catch (e) {
-        toast({ type: "error", title: "Не отправлено", text: errText(e), timeout: 6000 })
-    } finally {
-        t.testing = false
-    }
-}
 </script>
 
 <template>
     <UiPage title="Обратная связь" :sub="unread ? `новых: ${unread}` : ''">
         <template #actions>
             <UiIconBtn v-if="unread" icon="check" label="Прочитано всё" @click="markRead()" />
-            <UiIconBtn icon="sliders" label="Telegram" @click="openTg" />
         </template>
         <template #deskActions>
             <UiBtn v-if="unread" label="Прочитано всё" icon="check" kind="outline" @click="markRead()" />
-            <UiBtn label="Telegram" icon="sliders" kind="outline" :loading="tgOpening" @click="openTg" />
         </template>
 
         <div v-if="isError && !data" class="card card--pad"><UiError title="Не удалось загрузить «Обратная связь»" @retry="refetch()" /></div>
@@ -162,15 +114,4 @@ async function testTg() {
             </div>
         </template>
     </UiPage>
-
-    <UiSheet v-if="tg" title="Telegram" size="sm" @close="tg = null">
-        <form id="tg-form" class="pform" novalidate @submit.prevent="saveTg">
-            <UiField v-model="tg.token" label="Токен бота" type="password" :hint="tg.hasToken ? 'Сохранён' : ''" autocomplete="off" spellcheck="false" maxlength="200" />
-            <UiField v-model="tg.chatId" label="ID получателя" inputmode="numeric" autocomplete="off" maxlength="21" />
-        </form>
-        <template #footer>
-            <UiBtn label="Проверить" kind="secondary" size="lg" :loading="tg.testing" :disabled="tg.saving" @click="testTg" />
-            <UiBtn label="Сохранить" icon="check" size="lg" type="submit" form="tg-form" :loading="tg.saving" :disabled="tg.testing" />
-        </template>
-    </UiSheet>
 </template>

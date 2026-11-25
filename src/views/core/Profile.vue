@@ -67,7 +67,7 @@ async function changePassword() {
     }
 }
 
-/* Обратная связь: сервер пересылает текст владельцу в Telegram. При ошибке окно и текст остаются. */
+/* Обратная связь: сервер сохраняет текст, читает супер-админ в разделе «Обратная связь». При ошибке окно и текст остаются. */
 const fb = ref(null) // { text, sending } пока окно открыто
 const fbSheet = ref(null)
 async function sendFeedback() {

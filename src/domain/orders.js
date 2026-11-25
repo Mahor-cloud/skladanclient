@@ -21,7 +21,7 @@ export const orderPieces = (o) => (o.items || []).reduce((s, it) => s + (Number(
 export const orderTotal = (o, priceOf = () => 0) => o.totalAmount || (o.items || []).reduce((s, it) => s + (Number(it.product?.price ?? priceOf(pid(it))) || 0) * (Number(it.quantity) || 0), 0)
 
 /**
- * Доплата (> 0) или возврат (< 0), ждущие подтверждения казначея: событие «требуется доплата / возврат» последней правки позиций.
+ * Доплата (> 0) или возврат (< 0), ждущие подтверждения: событие «требуется доплата / возврат» последней правки позиций.
  * Правка пишет «позиции изменены» и следом разницу; нет разницы после неё — заказ вернулся к внесённой сумме, прежняя плашка снимается.
  */
 export const orderDiff = (o) => {
@@ -75,12 +75,9 @@ export const orderTurn = (o, s, { deficit = false, frozen = false } = {}) => {
         if (diff > 0)
             return tre
                 ? { mine: true, short: `Доплата ${money(diff)}`, text: `Состав изменили — проверьте доплату ${money(diff)} и подтвердите` }
-                : { mine: own, short: `Доплата ${money(diff)}`, text: own ? `Переведите доплату ${money(diff)} — казначей подтвердит` : `Ждёт доплаты ${money(diff)} и подтверждения казначея` }
-        if (diff < 0)
-            return tre
-                ? { mine: true, short: `Возврат ${money(-diff)}`, text: `Сумма уменьшилась — верните ${money(-diff)} и подтвердите возврат` }
-                : { mine: false, short: `Возврат ${money(-diff)}`, text: `Казначей вернёт ${money(-diff)} и подтвердит` }
-        return tre ? { mine: true, short: "Подтвердите", text: "Проверьте поступление и подтвердите оплату" } : { mine: false, short: "Ждёт казначея", text: "Ждёт подтверждения оплаты казначеем" }
+                : { mine: own, short: `Доплата ${money(diff)}`, text: own ? `Переведите доплату ${money(diff)} и ждите подтверждения` : `Ждёт доплаты ${money(diff)} и подтверждения` }
+        if (diff < 0) return tre ? { mine: true, short: `Возврат ${money(-diff)}`, text: `Сумма уменьшилась — верните ${money(-diff)} и подтвердите возврат` } : { mine: false, short: `Возврат ${money(-diff)}`, text: `Ждёт возврата ${money(-diff)}` }
+        return tre ? { mine: true, short: "Подтвердите", text: "Проверьте поступление и подтвердите оплату" } : { mine: false, short: "Ждёт подтверждения", text: "Ждёт подтверждения оплаты" }
     }
     if (st === "ready") {
         if (deficit) return { mine: false, warn: true, short: "Дефицит на складе", text: "Не хватает товара на складе — выдача и завершение заблокированы" }
@@ -102,7 +99,7 @@ export const orderSteps = (o) => {
     return [
         { key: "new", label: "Новый", sub: "Заказ оформлен", done: true, at: o.orderDate },
         { key: "paid", label: "Оплачен", sub: "Заказчик отметил оплату", done: !!o.isPaid, at: o.isPaid ? last("paid")?.at || null : null },
-        { key: "ready", label: "К выдаче", sub: "Казначей подтвердил оплату", done: !!o.confirmedPaid, at: o.confirmedPaid ? last("payment-confirmed")?.at || null : null },
+        { key: "ready", label: "К выдаче", sub: "Оплата подтверждена", done: !!o.confirmedPaid, at: o.confirmedPaid ? last("payment-confirmed")?.at || null : null },
         { key: "done", label: "Завершён", sub: "Заказ получен", done: !!o.isCompleted, at: null }
     ]
 }

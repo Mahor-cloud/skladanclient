@@ -97,7 +97,7 @@ async function save() {
         refreshOrders(props.id)
         // saving не снимается: экран уходит, а повторное касание до ухода отправило бы правку ещё раз
         backTo(back.value)
-        toast({ type: "success", title: "Позиции заказа обновлены", text: !o.isCompleted && d ? `Казначей подтвердит ${d > 0 ? "доплату" : "возврат"} ${money(Math.abs(d))}` : "" })
+        toast({ type: "success", title: "Позиции заказа обновлены", text: !o.isCompleted && d ? `${d > 0 ? "Доплата" : "Возврат"} ${money(Math.abs(d))} — ждёт подтверждения` : "" })
     } catch (e) {
         saving.value = false
         const data = e?.response?.data
@@ -178,9 +178,9 @@ async function save() {
                         tone="warning"
                         icon="wallet"
                         :title="`Потребуется доплата ${money(delta)}`"
-                        :text="`Всего к оплате ${money(total)}.` + (order.isCompleted ? '' : ' Подтверждение оплаты будет сброшено — казначей подтвердит заново.')"
+                        :text="`Всего к оплате ${money(total)}.` + (order.isCompleted ? '' : ' Подтверждение оплаты будет сброшено.')"
                     />
-                    <UiBanner v-else-if="delta < 0" tone="teal" :title="`Потребуется возврат ${money(-delta)}`" :text="`Всего к оплате ${money(total)}.` + (order.isCompleted ? '' : ' Казначей подтвердит возврат.')" />
+                    <UiBanner v-else-if="delta < 0" tone="teal" :title="`Потребуется возврат ${money(-delta)}`" :text="`Всего к оплате ${money(total)}.` + (order.isCompleted ? '' : ' Возврат нужно подтвердить.')" />
                 </div>
                 <section v-if="needReason" class="card blk o-reason"><UiField ref="reasonField" v-model="reason" label="Причина изменения" :rows="3" maxlength="500" required /></section>
                 <div class="order__acts">

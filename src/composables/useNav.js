@@ -7,6 +7,7 @@ import { homePath, tabsFor, visibleNav } from "@/domain/nav"
 import { orderTurn, ownerId } from "@/domain/orders"
 import { deficit } from "@/domain/stock"
 import { useActiveOrders, useInventoryLock, useProducts, usePurchases } from "@/service/queries"
+import { useFeedbackUnread } from "@/views/platform/queries"
 import { computed } from "vue"
 import { useCart } from "./useCart"
 import { useSession } from "./useSession"
@@ -14,7 +15,8 @@ import { useSession } from "./useSession"
 /**
  * Разделы по правам, нижнее меню телефона, домашний раздел и значки: badges.value = { [id раздела]: { n, tone } }.
  * Значок «Заказы» — сколько заказов ждёт действия пользователя (золотой), иначе сколько в работе (серый);
- * «Закупка» — неоплаченные для того, кто платит, иначе созданные незавершённые; «Каталог» — штук в корзине.
+ * «Закупка» — неоплаченные для того, кто платит, иначе созданные незавершённые; «Каталог» — штук в корзине;
+ * «Обратная связь» (супер-админ) — новые сообщения.
  */
 export function useNav() {
     const { plain, can, user } = useSession()
@@ -23,6 +25,7 @@ export function useNav() {
     const { data: orders } = useActiveOrders()
     const { data: purchases } = usePurchases()
     const { frozen } = useInventoryLock()
+    const { data: feedbackUnread } = useFeedbackUnread()
 
     const items = computed(() => visibleNav(plain.value))
     const tabs = computed(() => tabsFor(plain.value))
@@ -46,7 +49,8 @@ export function useNav() {
     const badges = computed(() => ({
         storage: can("create_orders") ? { n: count.value, tone: "accent" } : null,
         orders: ordersBadge.value,
-        purchases: purchasesBadge.value
+        purchases: purchasesBadge.value,
+        feedback: feedbackUnread.value ? { n: feedbackUnread.value, tone: "accent" } : null
     }))
     return { items, tabs, home, badges }
 }

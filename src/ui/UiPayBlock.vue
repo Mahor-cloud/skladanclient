@@ -7,7 +7,7 @@ import { money } from "@/domain/format"
 import { copyText } from "./overlay"
 import UiIcon from "./UiIcon.vue"
 
-// «Как оплатить»: сумма с копированием, реквизиты местности (карта, телефон, получатель) и текст казначея.
+// «Как оплатить»: сумма с копированием, реквизиты местности (карта, телефон, получатель) и текст местности.
 // pay — настройки местности (/database/msg): paymentCard, paymentPhone, paymentHolder, paymentMessage.
 const props = defineProps({
     amount: { type: Number, required: true },

@@ -11,7 +11,7 @@ import { useQuery } from "@tanstack/vue-query"
 import { computed, ref, watch } from "vue"
 import StatCols from "./StatCols.vue"
 import StatOrow from "./StatOrow.vue"
-import { axisNum, daySeries, dayKey, flowRows, flowSeries, PERIODS, rangeText, st, statQuery, statRange, zeroFill } from "./statistics"
+import { axisNum, daySeries, dayKey, flowRows, flowSeries, flowTotals, PERIODS, rangeText, st, statQuery, statRange, zeroFill } from "./statistics"
 
 const { can } = useSession()
 const allowed = computed(() => can("view_statistics"))
@@ -69,7 +69,7 @@ const charts = computed(() => data.value?.charts || {})
 const created = computed(() => data.value?.summary.ordersCount.created || 0)
 const days = computed(() => daySeries(range.value, charts.value.ordersByDay))
 const flows = computed(() => flowSeries(range.value, charts.value.ordersByDay, charts.value.purchasesByDay))
-const totals = computed(() => ({ s: (charts.value.ordersByDay || []).reduce((a, r) => a + (r.amount || 0), 0), r: (charts.value.purchasesByDay || []).reduce((a, r) => a + (r.amount || 0), 0) }))
+const totals = computed(() => flowTotals(charts.value.ordersByDay, charts.value.purchasesByDay))
 // Выбраны группы — поступления к ним не относятся: «Продажи и поступления» и «Расхождения» скрыты, как раньше.
 const hideFlow = computed(() => st.groups.length > 0)
 const byId = computed(() => new Map((products.value || []).map((p) => [String(p._id), p])))
@@ -259,7 +259,8 @@ async function exportCsv() {
                         <h3>Продажи и поступления</h3>
                         <div class="sblk__s">
                             <span class="pillsum pillsum--s"><UiIcon name="right" :size="14" />Продажи {{ money(totals.s) }}</span
-                            ><span class="pillsum pillsum--r"><UiIcon name="left" :size="14" />Поступления {{ money(totals.r) }}</span>
+                            ><span class="pillsum pillsum--r"><UiIcon name="left" :size="14" />Поступления {{ money(totals.r) }}</span
+                            ><span v-if="totals.d" class="muted">в т. ч. доставка {{ money(totals.d) }}</span>
                         </div>
                     </header>
                     <StatCols

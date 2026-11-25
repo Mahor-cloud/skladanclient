@@ -3,8 +3,9 @@
  * Licensed under Apache 2.0
  */
 
-const DAY = 24 * 3600 * 1000
-const MSK = 3 * 3600 * 1000
+const HOUR = 3600 * 1000
+const DAY = 24 * HOUR
+const MSK = 3 * HOUR
 
 /** День по Москве, ГГГГ-ММ-ДД — так же считает сервер. back — сколько дней назад. */
 export const mskDay = (back = 0, now = Date.now()) => new Date(now + MSK - back * DAY).toISOString().slice(0, 10)
@@ -35,6 +36,20 @@ export function fillDays(from, to, rows = []) {
     for (let t = Date.parse(from + "T00:00:00Z"); t <= Date.parse(to + "T00:00:00Z"); t += DAY) {
         const day = new Date(t).toISOString().slice(0, 10)
         out.push(by.get(day) || { day, users: 0, opens: 0, clicks: 0, ms: 0 })
+    }
+    return out
+}
+
+/** «14:00» из ГГГГ-ММ-ДДTЧЧ (час по Москве). */
+export const hh = (hour) => (hour ? hour.slice(11, 13) + ":00" : "")
+
+/** Все часы периода подряд (и пустые): [{ hour, users, opens, clicks, ms }]. from и to — часы ГГГГ-ММ-ДДTЧЧ по Москве. */
+export function fillHours(from, to, rows = []) {
+    const by = new Map(rows.map((r) => [r.hour, r]))
+    const out = []
+    for (let t = Date.parse(from + ":00:00Z"); t <= Date.parse(to + ":00:00Z"); t += HOUR) {
+        const hour = new Date(t).toISOString().slice(0, 13)
+        out.push(by.get(hour) || { hour, users: 0, opens: 0, clicks: 0, ms: 0 })
     }
     return out
 }

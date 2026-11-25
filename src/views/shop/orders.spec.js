@@ -222,12 +222,12 @@ describe("окно подтверждения — снимок, который �
 describe("плашка доплаты и возврата", () => {
     // money() ставит между числом и знаком рубля неразрывный пробел — ожидаемые строки собираются ею же
     it("оплата подтверждалась: «оплачено» — сумма с сервера", () => {
-        expect(diffText(order({ totalAmount: 700, paidAmount: 500 }), 200)).toBe(`Всего к оплате ${money(700)}, оплачено ${money(500)}. Казначей должен повторно подтвердить оплату.`)
-        expect(diffText(order({ totalAmount: 400, paidAmount: 500 }), -100)).toBe(`Всего к оплате ${money(400)}, оплачено ${money(500)}. Казначей должен подтвердить возврат.`)
+        expect(diffText(order({ totalAmount: 700, paidAmount: 500 }), 200)).toBe(`Всего к оплате ${money(700)}, оплачено ${money(500)}. Нужно повторно подтвердить оплату.`)
+        expect(diffText(order({ totalAmount: 400, paidAmount: 500 }), -100)).toBe(`Всего к оплате ${money(400)}, оплачено ${money(500)}. Нужно подтвердить возврат.`)
     })
     it("подтверждений ещё не было: сумма оплаченного не утверждается", () => {
-        expect(diffText(order({ totalAmount: 600, paidAmount: 0 }), -100)).toBe(`Всего к оплате ${money(600)}. Казначей должен подтвердить возврат.`)
-        expect(diffText(order({ totalAmount: 700, paidAmount: 0 }), 200)).toBe(`Всего к оплате ${money(700)}. Казначей должен подтвердить оплату.`)
+        expect(diffText(order({ totalAmount: 600, paidAmount: 0 }), -100)).toBe(`Всего к оплате ${money(600)}. Нужно подтвердить возврат.`)
+        expect(diffText(order({ totalAmount: 700, paidAmount: 0 }), 200)).toBe(`Всего к оплате ${money(700)}. Нужно подтвердить оплату.`)
         expect(diffText(order({ totalAmount: 700, paidAmount: 0 }), 200)).not.toMatch(/оплачено/)
     })
 })

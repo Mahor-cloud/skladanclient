@@ -5,7 +5,9 @@
  */
 import { plural } from "@/domain/format"
 import axiosInstance from "@/service/axios"
-import { backTo, toast, UiBtn, UiCheck, UiField, UiSheet } from "@/ui"
+import { useLitnaCatalog } from "@/service/queries"
+import { backTo, toast, UiBtn, UiCheck, UiField, UiSeg, UiSheet } from "@/ui"
+import { catalogSummary } from "@/views/purchases/litna"
 import { useQueryClient } from "@tanstack/vue-query"
 import { computed, reactive, ref } from "vue"
 import { errText, useCompanies, useSeeds } from "./queries"
@@ -58,11 +60,14 @@ const slugify = (s) =>
 const queryClient = useQueryClient()
 const { data: companies } = useCompanies()
 const { data: seeds } = useSeeds()
-const f = reactive({ name: "", slug: "", login: "", pass: "", admin: "Председатель", roles: true, products: true })
+const f = reactive({ name: "", slug: "", login: "", pass: "", admin: "Председатель", roles: true, products: true, source: "seeds" })
 const err = reactive({ slug: "", login: "", pass: "" })
 const saving = ref(false)
 const sheet = ref(null)
 const seedCount = computed(() => seeds.value?.products?.length)
+// Склад из lit-na.ru: все товары сайта (остаток 0, цены, виды, привязка); сайт недоступен — этот вариант не создаётся.
+const fromSite = computed(() => f.products && f.source === "litna")
+const { data: site, isPending: siteWait, isError: siteBad, error: siteErr } = useLitnaCatalog({ seeds: true, on: fromSite })
 
 async function create() {
     const slug = f.slug.trim()
@@ -71,6 +76,7 @@ async function create() {
     err.slug = slug && (companies.value || []).some((c) => c.slug === slug) ? `Компания с адресом «${slug}» уже есть` : ""
     const bad = [err.slug, err.login, err.pass].filter(Boolean)
     if (bad.length) return toast({ type: "warning", title: "Проверьте поля", text: bad.join(". ") })
+    if (fromSite.value && siteBad.value) return toast({ type: "error", title: "lit-na.ru недоступен", text: errText(siteErr.value) })
 
     saving.value = true
     let data
@@ -83,7 +89,9 @@ async function create() {
                 adminPassword: f.pass,
                 adminName: f.admin.trim() || undefined,
                 seedRoles: f.roles,
-                seedProducts: f.products
+                seedProducts: f.products,
+                // По умолчанию сервер берёт «Семена» — поле уходит только для lit-na.ru.
+                ...(fromSite.value ? { products: "litna" } : {})
             })
         ).data
     } catch (e) {
@@ -122,14 +130,29 @@ async function create() {
                 <UiField v-model="f.pass" label="Пароль" name="pass" required :error="err.pass" placeholder="Не меньше 4 символов" autocomplete="new-password" maxlength="120" @input="err.pass = ''" />
             </div>
             <UiField v-model="f.admin" label="Имя" name="admin" maxlength="120" />
-            <h4 class="formsec">Засеять данные из «Семян»</h4>
+            <h4 class="formsec">Засеять данные</h4>
             <UiCheck v-model="f.roles" label="Создать роли" />
-            <UiCheck v-model="f.products" label="Заполнить склад наименованиями" :hint="seedCount != null ? `${seedCount} ${plural(seedCount, ['товар', 'товара', 'товаров'])} с ценами, остатки 0` : ''" />
+            <UiCheck v-model="f.products" label="Заполнить склад наименованиями" :hint="f.source === 'seeds' && seedCount != null ? `${seedCount} ${plural(seedCount, ['товар', 'товара', 'товаров'])} с ценами, остатки 0` : ''" />
+            <template v-if="f.products">
+                <UiSeg
+                    v-model="f.source"
+                    label="Чем заполнить склад"
+                    :options="[
+                        { value: 'seeds', label: 'Семена' },
+                        { value: 'litna', label: 'lit-na.ru' }
+                    ]"
+                />
+                <template v-if="fromSite">
+                    <p v-if="siteWait" class="loading-note" role="status"><span class="spin"></span>Загружаем каталог lit-na.ru…</p>
+                    <p v-else-if="siteBad" class="neg" style="font-size: var(--fs-14)">{{ errText(siteErr) }}</p>
+                    <p v-else class="muted" style="font-size: var(--fs-14)">{{ catalogSummary(site) }}</p>
+                </template>
+            </template>
             <p class="muted" style="font-size: var(--fs-13)">Шаблоны редактируются в разделе «Семена». Если галочка снята — эти данные не создаются.</p>
         </form>
         <template #footer="{ close }">
             <UiBtn label="Отмена" kind="secondary" size="lg" @click="close()" />
-            <UiBtn label="Создать" icon="check" size="lg" :loading="saving" @click="create" />
+            <UiBtn label="Создать" icon="check" size="lg" :loading="saving" :disabled="fromSite && siteBad" @click="create" />
         </template>
     </UiSheet>
 </template>

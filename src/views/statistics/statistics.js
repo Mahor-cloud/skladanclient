@@ -79,11 +79,19 @@ export function daySeries(range, ordersByDay = []) {
 /** «Продажи и поступления» по неделям; дольше полугода — по месяцам, иначе столбики не помещаются на телефоне. */
 export function flowSeries(range, ordersByDay = [], purchasesByDay = []) {
     const monthly = (range.to - range.from) / DAY > 26 * 7
+    const ship = purchasesByDay.map((r) => ({ date: r.date, amount: r.shipping }))
     return buckets(range, monthly ? "month" : "week").map((b) => {
-        const v = [sumIn(ordersByDay, b), sumIn(purchasesByDay, b)]
+        const d = sumIn(ship, b)
+        const v = [sumIn(ordersByDay, b), sumIn(purchasesByDay, b) + d]
         const t = monthly ? new Date(b.from).toLocaleDateString("ru-RU", { month: "long", year: "numeric", timeZone: "UTC" }) : "Неделя с " + date(noon(b.from))
-        return { key: dayKey(b.from), l: label(b.from), v, tip: `${t}: Продажи ${money(v[0])} · Поступления ${money(v[1])}` }
+        return { key: dayKey(b.from), l: label(b.from), v, tip: `${t}: Продажи ${money(v[0])} · Поступления ${money(v[1])}${d ? `, в т. ч. доставка ${money(d)}` : ""}` }
     })
+}
+/** Итоги «Продаж и поступлений»: s — продажи, r — поступления вместе с доставкой заказов lit-na.ru (сервер шлёт её отдельно, shipping), d — доставка. */
+export function flowTotals(ordersByDay = [], purchasesByDay = []) {
+    const add = (rows, k) => rows.reduce((a, r) => a + (r[k] || 0), 0)
+    const d = add(purchasesByDay, "shipping")
+    return { s: add(ordersByDay, "amount"), r: add(purchasesByDay, "amount") + d, d }
 }
 
 /** Верх шкалы — «круглое» число не меньше максимума. */

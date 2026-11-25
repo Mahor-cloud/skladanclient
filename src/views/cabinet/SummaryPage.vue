@@ -259,7 +259,7 @@ const GCOLS = "40px minmax(0,2.4fr) 80px 80px 96px minmax(0,1fr)"
                             <UiLazy v-slot="{ item: i }" :items="g.items" :size="24">
                                 <div class="trow">
                                     <span class="trow__cov"
-                                        ><UiCover v-if="i.x.product" :product="i.x.product" size="xs" /><span v-else class="cover cover--sm cover--own"><UiIcon name="tag" :size="22" /></span
+                                        ><UiCover v-if="i.cov" :product="i.cov" size="xs" /><span v-else class="cover cover--sm cover--own"><UiIcon name="tag" :size="22" /></span
                                     ></span>
                                     <div class="trow__main">
                                         <span class="trow__n"

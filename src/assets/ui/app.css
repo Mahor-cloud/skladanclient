@@ -398,6 +398,10 @@ input[type="search"]::-webkit-search-cancel-button { display: none; }
 .ov { position: fixed; inset: 0; z-index: var(--z-sheet); }
 .ov__scrim { position: absolute; inset: 0; background: var(--scrim); opacity: 0; transition: opacity var(--d-3) var(--ease); }
 .ov.is-open .ov__scrim { opacity: 1; }
+/* Затемнение под нижним окном — общее (overlay.js): у нижнего окна своё прозрачно, но ловит нажатие «закрыть по фону» */
+.ov-dim { position: fixed; inset: 0; z-index: var(--z-sheet); background: var(--scrim); opacity: 0; pointer-events: none; transition: opacity var(--d-3) var(--ease); }
+.ov-dim.is-on { opacity: 1; }
+.ov--base .ov__scrim { background: none; }
 .ov__panel {
   position: absolute; display: flex; flex-direction: column; background: var(--surface); box-shadow: var(--sh-lg);
   transition: transform var(--d-3) var(--ease-sheet), opacity var(--d-3) var(--ease);
@@ -835,6 +839,7 @@ input[type="search"]::-webkit-search-cancel-button { display: none; }
 .pwa p small { display: block; font-weight: var(--fw-medium); opacity: .7; }
 .pwa .ibtn { color: inherit; }
 .pwa .ibtn:hover { background: rgba(127, 127, 127, .18); }
+.menu__acts { display: grid; gap: var(--sp-3); }
 .menu__foot { text-align: center; color: var(--text-3); font-size: var(--fs-12); font-weight: var(--fw-bold); }
 @media (min-width: 600px) { .navgrid { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
 

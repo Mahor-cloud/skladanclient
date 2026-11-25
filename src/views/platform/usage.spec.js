@@ -4,7 +4,7 @@
  */
 
 import { describe, expect, it } from "vitest"
-import { dm, dur, fillDays, fillMonths, monthStart, mskDay, my, rolesLine } from "./usage"
+import { dm, dur, fillDays, fillHours, fillMonths, hh, monthStart, mskDay, my, rolesLine } from "./usage"
 
 describe("страница «Использование»", () => {
     it("длительность читается по-человечески", () => {
@@ -25,6 +25,16 @@ describe("страница «Использование»", () => {
             ["2026-11-18", 3],
             ["2026-11-19", 0]
         ])
+    })
+    it("24 часа — 24 часа подряд через полночь, пустые часы остаются нулями", () => {
+        const hours = fillHours("2026-11-23T01", "2026-11-24T00", [
+            { hour: "2026-11-23T23", users: 2, opens: 2, clicks: 7, ms: 1000 },
+            { hour: "2026-11-24T00", users: 1, opens: 1, clicks: 3, ms: 500 }
+        ])
+        expect(hours).toHaveLength(24)
+        expect([hours[0].hour, hours[22].hour, hours[23].hour]).toEqual(["2026-11-23T01", "2026-11-23T23", "2026-11-24T00"])
+        expect(hours.map((h) => h.users).slice(20)).toEqual([0, 0, 2, 1])
+        expect([hh(hours[0].hour), hh(hours[23].hour), hh("")]).toEqual(["01:00", "00:00", ""])
     })
     it("длинный период идёт по месяцам, пустые месяцы остаются нулями, год переходит через январь", () => {
         const months = fillMonths("2026-11-19", "2027-02-03", [{ month: "2027-01", users: 5, opens: 9, clicks: 40, ms: 1000 }])

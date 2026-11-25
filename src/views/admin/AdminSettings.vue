@@ -11,8 +11,9 @@ import axiosInstance from "@/service/axios"
 import { useActiveOrders, useMsgs, usePurchases } from "@/service/queries"
 import { toast, UiBtn, UiCheck, UiEmpty, UiError, UiField, UiIcon, UiPage, UiPayBlock, UiSheet, UiSk, UiSwitch } from "@/ui"
 import { useQueryClient } from "@tanstack/vue-query"
-import { computed, reactive, ref, watch } from "vue"
-import { errText } from "./admin"
+import { computed, reactive, ref, watch, watchEffect } from "vue"
+import { useRouter } from "vue-router"
+import { adminHome, errText, settingsEmpty } from "./admin"
 import AdminTabs from "./AdminTabs.vue"
 
 const queryClient = useQueryClient()
@@ -27,7 +28,10 @@ const editPay = computed(() => can("edit-payment-message"))
 const editRcv = computed(() => can("edit-received-message"))
 const canExp = computed(() => isStaff.value && can("export-database"))
 const canImp = computed(() => isStaff.value && can("import-database"))
-const nothing = computed(() => !canMsg.value && !isStaff.value && !canExp.value && !canImp.value)
+const nothing = computed(() => settingsEmpty(plain.value))
+// Из настроек видна только вкладка lit-na.ru — сразу туда (раздел открывается с пользователей, оттуда — сюда).
+const router = useRouter()
+watchEffect(() => adminHome(plain.value) === "admin-litna" && router.replace({ name: "admin-litna" }))
 
 const KEYS = ["paymentCard", "paymentPhone", "paymentHolder", "paymentMessage", "receivedMessage"]
 const d = reactive({ paymentCard: "", paymentPhone: "", paymentHolder: "", paymentMessage: "", receivedMessage: "", goal: "", invDocs: false })
@@ -159,7 +163,7 @@ async function importDb() {
                         <UiField v-model="d.paymentCard" label="Номер карты" name="paymentCard" placeholder="0000 0000 0000 0000" inputmode="numeric" icon="card" :readonly="!editPay" autocomplete="off" maxlength="23" @change="savePay" />
                         <UiField v-model="d.paymentPhone" label="Номер телефона" name="paymentPhone" placeholder="Как удобно: +7…, 8…" inputmode="tel" icon="phone" :readonly="!editPay" autocomplete="off" maxlength="24" @change="savePay" />
                         <UiField v-model="d.paymentHolder" label="Получатель" name="paymentHolder" placeholder="Имя Отчество Ф." icon="user" :readonly="!editPay" autocomplete="off" maxlength="60" @change="savePay" />
-                        <UiField v-model="d.paymentMessage" label="Сообщение" name="paymentMessage" :rows="3" :hint="editPay ? '' : 'Менять может казначей'" :readonly="!editPay" maxlength="2000" @change="savePay" />
+                        <UiField v-model="d.paymentMessage" label="Сообщение" name="paymentMessage" :rows="3" :hint="editPay ? '' : 'Нет права менять'" :readonly="!editPay" maxlength="2000" @change="savePay" />
                     </div>
                     <div class="preview">
                         <span class="preview__l"><UiIcon name="phone" :size="16" />Так увидит группа</span>
@@ -172,7 +176,7 @@ async function importDb() {
                     <span class="sset__i"><UiIcon name="pin" :size="22" /></span>
                     <div><h2>Сообщение о получении</h2></div>
                 </header>
-                <UiField v-model="d.receivedMessage" label="Текст «Получение»" name="receivedMessage" :rows="3" :hint="editRcv ? '' : 'Менять может кладовщик'" :readonly="!editRcv" maxlength="2000" @change="saveRcv" />
+                <UiField v-model="d.receivedMessage" label="Текст «Получение»" name="receivedMessage" :rows="3" :hint="editRcv ? '' : 'Нет права менять'" :readonly="!editRcv" maxlength="2000" @change="saveRcv" />
             </section>
             <section v-if="isStaff" id="set-store" class="card sset" :class="{ 'sset--wide': !canMsg }">
                 <header class="sset__h">

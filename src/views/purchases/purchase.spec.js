@@ -5,7 +5,7 @@
 
 import { money, pcs } from "@/domain/format"
 import { describe, expect, it } from "vitest"
-import { needOf, overBy, pst, puGot, puLineProduct, puPayload, puPerm, puPieces, puTotal, puTurn, qtyIn, rcvIn, syncDraft } from "./purchase"
+import { needOf, overBy, pst, puFixed, puGot, puLineProduct, puPayTotal, puPayload, puPerm, puPieces, puTotal, puTurn, qtyIn, rcvIn, syncDraft } from "./purchase"
 
 describe("закупка", () => {
     it("статус по флагам сервера", () => {
@@ -39,6 +39,24 @@ describe("закупка", () => {
         expect(puTotal({ ...pu, isPaid: false }, (id) => now[id])).toBe(100)
     })
 
+    it("заказ lit-na.ru: в созданной закупке цены сайта закреплены до оплаты, в черновике с оформляемым заказом — текущие", () => {
+        const pu = { isCreated: true, litna: { orderId: 1 }, totalAmount: 90, items: [{ product: "a", quantity: 3, price: 30 }] }
+        expect(puFixed(pu)).toBe(true)
+        expect(puTotal(pu, () => 50)).toBe(90)
+        expect(puLineProduct(pu, pu.items[0], { _id: "a", price: 50 }).price).toBe(30)
+        const placing = { ...pu, isCreated: false, litna: { status: "placing" } }
+        expect(puFixed(placing)).toBe(false)
+        expect(puTotal(placing, () => 50)).toBe(150)
+        expect(puLineProduct(placing, pu.items[0], { _id: "a", price: 50 }).price).toBe(50)
+    })
+
+    it("к оплате: у созданной закупки с заказом сайта — с доставкой, иначе — сумма закупки", () => {
+        expect(puPayTotal({ isCreated: true, litna: { total: 15620 } }, 15230)).toBe(15620)
+        expect(puPayTotal({ isCreated: false, litna: { status: "placing" } }, 3465)).toBe(3465)
+        expect(puPayTotal({ isCreated: true }, 900)).toBe(900)
+        expect(puPayTotal(undefined, 0)).toBe(0)
+    })
+
     it("суммы и штуки — только позиции с количеством, по текущим ценам", () => {
         const pu = {
             items: [
@@ -61,6 +79,18 @@ describe("закупка", () => {
         expect(puPerm(s(["delete_purchases"])).del).toBe(true)
         expect(puPerm(s(["edit_purchases"])).del).toBe(false)
         expect(puPerm(s(["view_purchases"])).del).toBe(false)
+    })
+
+    it("без галочки «Служащий» — только свои закупки; новую начать можно", () => {
+        const all = ["create_purchases", "edit_purchases", "approve-payment", "delete_purchases"]
+        const s = (isStaff) => ({ isStaff, user: { _id: "u1" }, can: (p) => all.includes(p) })
+        const off = { create: false, edit: false, pay: false, del: false }
+        const on = { create: true, edit: true, pay: true, del: true }
+        expect(puPerm(s(false), { user: { _id: "u2" } })).toMatchObject(off)
+        expect(puPerm(s(false), { user: { _id: "u1" } })).toMatchObject(on)
+        expect(puPerm(s(false), { user: "u1" })).toMatchObject(on)
+        expect(puPerm(s(true), { user: { _id: "u2" } })).toMatchObject(on)
+        expect(puPerm(s(false)).create).toBe(true)
     })
 
     it("ход: чей шаг и сколько не довезли", () => {

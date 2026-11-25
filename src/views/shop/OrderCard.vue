@@ -48,7 +48,7 @@ const act = computed(() => {
         </div>
         <div v-if="act" class="ocard__acts">
             <UiBtn v-if="act === 'pay'" :label="`Оплатить ${money(row.total)}`" icon="wallet" :to="to" />
-            <span v-else-if="act === 'wait'" class="ocard__wait"><UiIcon name="clock" :size="18" />Оплачен, ждёт казначея</span>
+            <span v-else-if="act === 'wait'" class="ocard__wait"><UiIcon name="clock" :size="18" />Оплачен, ждёт подтверждения</span>
             <span v-else-if="act === 'ice'" class="ocard__wait ocard__wait--ice"><UiIcon name="clipboard" :size="18" />Выдача после инвентаризации</span>
             <UiBtn v-else-if="act === 'blocked'" label="Заблокировано дефицитом" icon="lock" kind="secondary" disabled />
             <UiBtn v-else-if="act === 'complete'" label="Заказ получен" icon="check" kind="success" :to="{ ...to, query: { ask: 'complete' } }" />

@@ -7,15 +7,15 @@ import { useSession } from "@/composables/useSession"
 import { UiAvatar, UiBtn, UiChip, UiEmpty, UiError, UiIcon, UiIconBtn, UiLazy, UiPage, UiSk, UiSkRow } from "@/ui"
 import { computed, ref, watchEffect } from "vue"
 import { useRouter } from "vue-router"
-import { roleId, useRoles, useUsers } from "./admin"
+import { adminHome, roleId, useRoles, useUsers } from "./admin"
 import AdminTabs from "./AdminTabs.vue"
 
 const router = useRouter()
-const { user, can } = useSession()
+const { user, can, plain } = useSession()
 const { data: users, isPending, isError, refetch } = useUsers()
 const { data: roles } = useRoles()
 // Без права на пользователей вход в раздел ведёт в настройки; права могут смениться на лету.
-watchEffect(() => !can("view_users") && router.replace({ name: "admin-settings" }))
+watchEffect(() => !can("view_users") && router.replace({ name: adminHome(plain.value) }))
 // Создавать пользователей сервер даёт только с флагом «Служащий» (AdminGuard).
 const canCreate = computed(() => !!user.value?.isAdmin && can("create_users"))
 

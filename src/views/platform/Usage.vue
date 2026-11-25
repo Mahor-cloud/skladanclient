@@ -10,16 +10,16 @@ import { UiBtn, UiChip, UiEmpty, UiError, UiIcon, UiPage, UiSeg, UiSelect, UiSk 
 import { keepPreviousData, useQuery } from "@tanstack/vue-query"
 import { computed, reactive } from "vue"
 import StatCols from "../statistics/StatCols.vue"
-import { dm, dur, fillDays, fillMonths, monthStart, mskDay, my, rolesLine } from "./usage"
+import { dm, dur, fillDays, fillHours, fillMonths, hh, monthStart, mskDay, my, rolesLine } from "./usage"
 
 // Использование интерфейса: что нажимают и сколько времени проводят на экранах. Данные копит счётчик service/usage.js.
 const f = reactive({ days: 30, company: "", role: "", perm: "", device: "", user: "", userName: "", screen: "", sort: "ms", more: {} })
 // Код права → его название из общего каталога прав
 const PERM = Object.fromEntries(PERMS.flatMap(([, , list]) => list.map(([code, label]) => [code, label])))
-// days: 0 — всё время (от первой записи); 90 и 365 — три и двенадцать календарных месяцев, считая нынешний
+// days: 1 — последние 24 часа; 0 — всё время (от первой записи); 90 и 365 — три и двенадцать календарных месяцев, считая нынешний
 const MONTHS = { 90: 3, 365: 12 }
 const params = computed(() => ({
-    ...(!f.days ? { all: 1 } : { from: MONTHS[f.days] ? monthStart(MONTHS[f.days] - 1) : mskDay(f.days - 1), to: mskDay() }),
+    ...(f.days === 1 ? { hours: 24 } : !f.days ? { all: 1 } : { from: MONTHS[f.days] ? monthStart(MONTHS[f.days] - 1) : mskDay(f.days - 1), to: mskDay() }),
     company: f.company || undefined,
     role: f.role || undefined,
     perm: f.perm || undefined,
@@ -33,8 +33,9 @@ const { data, isPending, isError, isPlaceholderData, refetch } = useQuery({
     staleTime: 60_000
 })
 
-// 7 и 30 дней считаются по дням; от трёх месяцев — целыми месяцами по готовым итогам (так решает сервер: data.by)
+// 24 часа считаются по часам, 7 и 30 дней — по дням; от трёх месяцев — целыми месяцами по готовым итогам (так решает сервер: data.by)
 const PERIODS = [
+    { value: 1, label: "24 ч" },
     { value: 7, label: "7 дн." },
     { value: 30, label: "30 дн." },
     { value: 90, label: "3 мес." },
@@ -57,23 +58,29 @@ const roleOptions = computed(() => [{ value: "", label: "Все роли" }, ...
 
 const sum = (list, key) => (list || []).reduce((s, x) => s + (x[key] || 0), 0)
 const byMonth = computed(() => data.value?.by === "month")
+const byHour = computed(() => data.value?.by === "hour")
 const total = computed(() => {
     const d = data.value
-    const src = byMonth.value ? d?.months : d?.days
+    const src = byMonth.value ? d?.months : byHour.value ? d?.hours : d?.days
     const ms = sum(src, "ms")
-    // сумма «дней с заходом» по людям — пользователе-дни
-    const userDays = sum(d?.users, "days")
-    return { users: d?.users.length || 0, opens: sum(src, "opens"), clicks: sum(src, "clicks"), ms, perDay: userDays ? ms / userDays : 0 }
+    const users = d?.users.length || 0
+    // сумма «дней с заходом» по людям — пользователе-дни; за 24 часа у людей не дни, а часы — день один
+    const userDays = byHour.value ? users : sum(d?.users, "days")
+    return { users, opens: sum(src, "opens"), clicks: sum(src, "clicks"), ms, perDay: userDays ? ms / userDays : 0 }
 })
 const byDevice = computed(() => Object.fromEntries((data.value?.devices || []).map((x) => [x.device, x.users])))
 const chart = computed(() => {
     const d = data.value
     if (!d) return []
     const tip = (x) => `${x.users} ${plural(x.users, ["пользователь", "пользователя", "пользователей"])}, ${num(x.clicks)} наж., ${dur(x.ms)}`
+    if (byHour.value) return fillHours(d.from, d.to, d.hours).map((x) => ({ key: x.hour, l: hh(x.hour), v: [x.users], tip: `${hh(x.hour)}: ${tip(x)}` }))
     return byMonth.value
         ? fillMonths(d.from, d.to, d.months).map((x) => ({ key: x.month, l: my(x.month), v: [x.users], tip: `${my(x.month)}: ${tip(x)}` }))
         : fillDays(d.from, d.to, d.days).map((x) => ({ key: x.day, l: dm(x.day), v: [x.users], tip: `${dm(x.day)}: ${tip(x)}` }))
 })
+const chartTitle = computed(() => "Пользователи по " + (byHour.value ? "часам" : byMonth.value ? "месяцам" : "дням"))
+// за 24 часа у человека — число часов с заходом
+const daysCol = computed(() => (byHour.value ? "Часов" : "Дней"))
 
 const avg = (s) => (s.visits ? s.ms / s.visits : 0)
 const screens = computed(() => [...(data.value?.screens || [])].sort((a, b) => (f.sort === "avg" ? avg(b) - avg(a) : f.sort === "visits" ? b.visits - a.visits : b.ms - a.ms)))
@@ -87,9 +94,14 @@ const KIND = { error: "ошибка", empty: "пусто" }
 const cut = (key, list, n = 10) => (f.more[key] ? list : list.slice(0, n))
 const pickUser = (u) => Object.assign(f, { user: u.user, userName: u.name || u.login })
 const full = (day) => dm(day) + "." + day.slice(0, 4)
-const period = computed(() => (!data.value ? "" : byMonth.value ? `${my(data.value.from)} — ${my(data.value.to)}` : `${full(data.value.from)} — ${full(data.value.to)}`))
-// «последний раз»: день или, в длинном периоде, месяц
-const at = (v) => (v?.length === 7 ? my(v) : dm(v))
+const period = computed(() => {
+    const d = data.value
+    if (!d) return ""
+    if (byHour.value) return `${dm(d.from)} ${hh(d.from)} — ${dm(d.to)} ${hh(d.to)}`
+    return byMonth.value ? `${my(d.from)} — ${my(d.to)}` : `${full(d.from)} — ${full(d.to)}`
+})
+// «последний раз»: день, в длинном периоде — месяц, за 24 часа — час
+const at = (v) => (v?.length === 7 ? my(v) : v?.length === 13 ? hh(v) : dm(v))
 </script>
 
 <template>
@@ -133,9 +145,9 @@ const at = (v) => (v?.length === 7 ? my(v) : dm(v))
             <div class="sgrid">
                 <section class="card sblk sblk--wide">
                     <header class="sblk__h">
-                        <h3>{{ byMonth ? "Пользователи по месяцам" : "Пользователи по дням" }}</h3>
+                        <h3>{{ chartTitle }}</h3>
                     </header>
-                    <StatCols :groups="chart" :series="[{ name: 'Пользователи', tone: 'primary' }]" sparse :cls="byMonth ? '' : 'cols--days'" :label="byMonth ? 'Пользователи по месяцам' : 'Пользователи по дням'" />
+                    <StatCols :groups="chart" :series="[{ name: 'Пользователи', tone: 'primary' }]" sparse :cls="byMonth ? '' : 'cols--days'" :label="chartTitle" />
                 </section>
 
                 <section class="card sblk sblk--wide">
@@ -183,14 +195,19 @@ const at = (v) => (v?.length === 7 ? my(v) : dm(v))
                 <section class="card sblk sblk--wide">
                     <header class="sblk__h"><h3>Пользователи</h3></header>
                     <div class="utbl" style="--n: 5">
-                        <div class="utbl__h" aria-hidden="true"><span>Пользователь</span><span>Последний заход</span><span>Дней</span><span>Заходов</span><span>Нажатий</span><span>Время</span></div>
+                        <div class="utbl__h" aria-hidden="true">
+                            <span>Пользователь</span><span>Последний заход</span><span>{{ daysCol }}</span
+                            ><span>Заходов</span><span>Нажатий</span><span>Время</span>
+                        </div>
                         <div v-for="u in cut('u', data.users)" :key="u.user" class="utbl__r">
                             <span class="utbl__n"
                                 ><button type="button" @click="pickUser(u)">{{ u.name || u.login || "удалён" }}</button><small>{{ u.role || "без роли" }}{{ f.company ? "" : " · " + companyName(u.company) }}</small></span
                             >
                             <span class="utbl__vs"
-                                ><span><small>Последний заход</small>{{ dm(u.lastDay) }}</span
-                                ><span><small>Дней</small>{{ u.days }}</span
+                                ><span><small>Последний заход</small>{{ at(u.lastDay) }}</span
+                                ><span
+                                    ><small>{{ daysCol }}</small
+                                    >{{ u.days }}</span
                                 ><span><small>Заходов</small>{{ num(u.opens) }}</span
                                 ><span><small>Нажатий</small>{{ num(u.clicks) }}</span></span
                             >

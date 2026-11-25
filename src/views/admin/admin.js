@@ -64,6 +64,11 @@ export function moveTab(menu, id, d) {
     return m
 }
 
+/** «Настройки» пусты: нет права на сообщения и флага «Служащий» (склад и база — только у служащего, ещё и по праву). */
+export const settingsEmpty = (s) => !s.can("view-messages") && !s.isStaff
+/** Куда из «Админки» без права на пользователей: настройки пусты, а вкладка lit-na.ru есть — сразу туда, без второго перехода. */
+export const adminHome = (s) => (settingsEmpty(s) && (s.can("create_purchases") || s.can("edit_purchases")) ? "admin-litna" : "admin-settings")
+
 /** Текст ошибки сервера: строка или массив class-validator. */
 export const errText = (e, fallback) => {
     const m = e?.response?.data?.message

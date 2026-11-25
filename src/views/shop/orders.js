@@ -22,7 +22,7 @@ export const FILTERS = {
 
 export const EVENT = {
     paid: ["Заказчик отметил оплату", "success"],
-    "payment-confirmed": ["Казначей подтвердил оплату", "success"],
+    "payment-confirmed": ["Оплата подтверждена", "success"],
     "items-changed": ["Изменены позиции", "neutral"],
     "surcharge-pending": ["Требуется доплата", "warning"],
     "refund-pending": ["Требуется возврат", "teal"],
@@ -69,7 +69,7 @@ export const askStale = (ask, now) => ask.id !== now.id || (ask.kind in ASK_FLAG
 export const diffText = (o, diff) => {
     const confirmed = o.paidAmount > 0
     const todo = diff < 0 ? "подтвердить возврат" : confirmed ? "повторно подтвердить оплату" : "подтвердить оплату"
-    return `Всего к оплате ${money(o.totalAmount)}${confirmed ? `, оплачено ${money(o.paidAmount)}` : ""}. Казначей должен ${todo}.`
+    return `Всего к оплате ${money(o.totalAmount)}${confirmed ? `, оплачено ${money(o.paidAmount)}` : ""}. Нужно ${todo}.`
 }
 
 /** Сколько можно поставить в заказ: свободный остаток плюс то, что уже в этом заказе (оно в резерве). Товара нет в каталоге — предел проверит сервер. */

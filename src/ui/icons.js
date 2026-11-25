@@ -32,6 +32,7 @@ export const IC = {
     sun: '<circle cx="12" cy="12" r="4"/><path d="M12 2.5v2M12 19.5v2M4.6 4.6 6 6M18 18l1.4 1.4M2.5 12h2M19.5 12h2M4.6 19.4 6 18M18 6l1.4-1.4"/>',
     moon: '<path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/>',
     logout: '<path d="M10 4H5v16h5M15 8l4 4-4 4M19 12H9"/>',
+    chat: '<path d="M6 4.5h12a2.5 2.5 0 0 1 2.5 2.5v7.5A2.5 2.5 0 0 1 18 17h-7l-4.5 3.5V17H6a2.5 2.5 0 0 1-2.5-2.5V7A2.5 2.5 0 0 1 6 4.5z"/><path d="M8 9.5h8M8 13h5"/>',
     tag: '<path d="M3 12V4h8l10 10-8 8z"/><circle cx="7.5" cy="8.5" r="1.5"/>',
     clipboard: '<rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4V2.8h6V4M9 13l2 2 4-4"/>',
     chart: '<path d="M4 20V11M10 20V5M16 20v-6M2 20h20"/>',
@@ -64,5 +65,6 @@ export const IC = {
     install: '<rect x="6" y="2.5" width="12" height="19" rx="3"/><path d="M12 7v7M9 11l3 3 3-3"/>',
     image: '<rect x="3.5" y="5" width="17" height="14" rx="2.5"/><circle cx="9" cy="10" r="1.6"/><path d="m5 17.5 5-5 3.5 3.2 2.5-2.2 3.5 3.5"/>',
     type: '<path d="M4 7V5h11v2M9.5 5v14M7 19h5"/><path d="M14 13v-1.5h6V13M17 11.5V19M15.5 19h3"/>',
+    external: '<path d="M14 4.5h5.5V10M19.5 4.5 11 13"/><path d="M10 6.5H7a2.5 2.5 0 0 0-2.5 2.5v8A2.5 2.5 0 0 0 7 19.5h8a2.5 2.5 0 0 0 2.5-2.5v-3"/>',
     stamp: '<path d="M9.5 3.5h5v4.5l3.5 3.5H6L9.5 8z"/><path d="M4.5 11.5h15v4h-15zM4 20h16"/>'
 }

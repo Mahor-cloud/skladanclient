@@ -12,13 +12,14 @@ export const NAV = [
     { id: "cabinet-summary", label: "Сводка складов", icon: "layers", path: "/cabinet-summary", group: "Склад", show: (s) => s.can("view_cabinet_summary") || s.can("view_all_cabinets") },
     { id: "purchases", label: "Закупки", icon: "truck", path: "/purchase", group: "Служебное", show: (s) => s.can("view_purchases") },
     { id: "inventory", label: "Инвентаризация", icon: "clipboard", path: "/storage/inventory", group: "Служебное", show: (s) => s.can("view_inventory") },
-    { id: "admin", label: "Админка", icon: "shield", path: "/admin", group: "Служебное", show: (s) => !s.isSuper && (s.isStaff || s.can("view_users") || s.can("view_roles")) },
+    { id: "admin", label: "Админка", icon: "shield", path: "/admin", group: "Служебное", show: (s) => !s.isSuper && (s.isStaff || s.can("view_users") || s.can("view_roles") || s.can("create_purchases") || s.can("edit_purchases")) },
     { id: "statistics", label: "Статистика", icon: "chart", path: "/statistics", group: "Аналитика", show: (s) => s.can("view_statistics") },
     { id: "history", label: "История", icon: "history", path: "/history", group: "Аналитика", show: (s) => s.can("view_change_history") },
     { id: "companies", label: "Компании", icon: "globe", path: "/companies", group: "Платформа", show: (s) => s.isSuper },
     { id: "seeds", label: "Семена", icon: "sprout", path: "/seeds", group: "Платформа", show: (s) => s.isSuper },
     { id: "metrics", label: "Метрики", icon: "pulse", path: "/observability", group: "Платформа", show: (s) => s.isSuper },
-    { id: "usage", label: "Использование", icon: "eye", path: "/usage", group: "Платформа", show: (s) => s.isSuper }
+    { id: "usage", label: "Использование", icon: "eye", path: "/usage", group: "Платформа", show: (s) => s.isSuper },
+    { id: "feedback", label: "Обратная связь", icon: "chat", path: "/feedback", group: "Платформа", show: (s) => s.isSuper }
 ]
 export const visibleNav = (s) => NAV.filter((n) => n.show(s))
 

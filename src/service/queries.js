@@ -9,6 +9,7 @@ import { useQuery } from "@tanstack/vue-query"
 import { computed, toValue } from "vue"
 import { isAuthenticated } from "./auth/auth.helper"
 import axiosInstance from "./axios"
+import { queryClient } from "./queryClient"
 
 /* Общие запросы каркаса и разделов — с прежними ключами vue-query, чтобы кэш был один и realtime обновлял всех разом.
    В кэше лежит ответ axios целиком (как раньше), наружу select отдаёт data. Запрос включается только при нужном праве. */
@@ -53,6 +54,52 @@ export const useOrderList = (all = false, on = true) =>
 
 /** Все закупки местности (значок меню, «Едет в закупках», «Ждёт поставку»). */
 export const usePurchases = () => useQuery({ ...shared, queryKey: ["purchases"], queryFn: () => axiosInstance.get("/purchases"), enabled: allowed("view_purchases") })
+
+/** Аккаунт местности на lit-na.ru: { configured, login (почта или null — гость), loginFailed, получатель, address, delivery }. Меняется только своим сохранением. */
+export const useLitnaAccount = () =>
+    useQuery({
+        ...shared,
+        refetchInterval: false,
+        queryKey: ["litna", "account"],
+        queryFn: () => axiosInstance.get("/litna/account"),
+        enabled: computed(() => isAuthenticated() && !isSuper.value && (can("create_purchases") || can("edit_purchases") || can("view_purchases")))
+    })
+/**
+ * Каталог lit-na.ru: { items:[{ id, sku, name, price, stock, inStock, image }], suggest:{ [товар]: id } } — один раз на полчаса.
+ * seeds — для шаблона «Семян» (супер-админ), подсказки по названию; on — дополнительное условие (значение или ref).
+ */
+export const useLitnaCatalog = ({ seeds = false, on = true } = {}) =>
+    useQuery({
+        ...shared,
+        staleTime: 1000 * 60 * 30,
+        refetchInterval: false,
+        refetchOnWindowFocus: false,
+        // Сайт лежит — без повторов: не стучаться трижды и не засорять счётчик ошибок сервера.
+        retry: false,
+        queryKey: ["litna", "catalog", seeds ? "seeds" : "own"],
+        queryFn: () => axiosInstance.get("/litna/catalog", { params: seeds ? { seeds: 1 } : {} }),
+        enabled: computed(() => isAuthenticated() && isSuper.value === seeds && !!toValue(on))
+    })
+/** Свежие сведения об аккаунте lit-na.ru (вход, выход, вход заранее) — в кэш, без запроса; кэша ещё нет — ничего: неполный аккаунт туда не попадёт. */
+export const putLitnaAccount = (patch) => queryClient.setQueryData(["litna", "account"], (old) => (old ? { ...old, data: { ...old.data, ...patch } } : old))
+const checking = {}
+/**
+ * Спросить lit-na.ru об оплате закупки: { paid, status, reverted, message } — paid: сервер уже отметил оплату; reverted: заказ отменён
+ * или пропал на сайте, закупка снова черновик (message — текст сервера); gone — записи заказа нет (404). Сбой сети или сайта — {}.
+ * Пока проверка закупки идёт, повторный вызов ждёт её же: две проверки одной закупки сразу на сайт не уходят.
+ */
+export function checkLitna(id) {
+    if (!checking[id])
+        checking[id] = axiosInstance
+            .post(`/litna/purchases/${id}/check`, {})
+            .then(
+                (r) => r.data || {},
+                // 404 — записи заказа больше нет: для окна оплаты это «заказа больше нет», как отмена
+                (e) => (e?.response?.status === 404 ? { gone: true } : {})
+            )
+            .finally(() => delete checking[id])
+    return checking[id]
+}
 
 /** Настройки местности: реквизиты, текст «Получение», цель склада, allowInventoryWithOpenDocs. */
 export const useMsgs = () => useQuery({ ...shared, queryKey: ["msgs"], queryFn: () => axiosInstance.get("/database/msg"), select: (res) => res.data || {}, enabled: allowed("view-messages") })

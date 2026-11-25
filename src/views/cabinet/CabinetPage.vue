@@ -53,7 +53,8 @@ function edit(r) {
 async function remove(r) {
     if (!r?.cabinetItemId) return
     if (!(await confirm({ title: "Удалить позицию?", ok: "Удалить", tone: "danger" }))) return
-    const back = { customName: r.productName, baseQty: toNum(val(r, "baseQty")), currentQty: toNum(val(r, "currentQty")), customPrice: r.price || 0, note: r.note || "" }
+    // Фото удаляется вместе с позицией — «Вернуть» восстанавливает её с цветом обложки, но без фото.
+    const back = { customName: r.productName, baseQty: toNum(val(r, "baseQty")), currentQty: toNum(val(r, "currentQty")), customPrice: r.price || 0, note: r.note || "", cover: r.cover || null, coverColor: r.coverColor || null }
     try {
         await axiosInstance.delete(`/cabinet/${r.cabinetItemId}`)
     } catch (e) {

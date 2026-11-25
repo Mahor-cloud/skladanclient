@@ -19,6 +19,13 @@ export const EVENT_LABELS_RU = {
     "purchase-created": "Закупка создана",
     "purchase-updated": "Закупка обновлена",
     "purchase-deleted": "Закупка удалена",
+    "litna-account-updated": "Аккаунт lit-na.ru изменён",
+    "litna-released": "Оформление на lit-na.ru снято",
+    "litna-links-updated": "Привязка к lit-na.ru изменена",
+    "litna-paid-after-cancel": "Заказ lit-na.ru оплачен после отмены",
+    "litna-detached": "Закупка отвязана от lit-na.ru",
+    "litna-shipped": "Заказ lit-na.ru отправлен",
+    "litna-cancelled-after-paid": "Заказ lit-na.ru отменён после оплаты",
     "inventory-created": "Инвентаризация начата",
     "inventory-updated": "Инвентаризация обновлена",
     "inventory-edited-after-completion": "Завершённая инвентаризация переписана",
@@ -49,7 +56,7 @@ export const GROUPS = { "": "Все события", orders: "Заказы", pay
 export function eventGroup(type) {
     const t = String(type || "")
     if (/surcharge|refund/.test(t)) return "pay"
-    const prefix = { order: "orders", purchase: "purchases", inventory: "inventory", product: "products", user: "people", role: "people" }
+    const prefix = { order: "orders", purchase: "purchases", litna: "purchases", inventory: "inventory", product: "products", user: "people", role: "people" }
     return prefix[t.split("-")[0]] || ""
 }
 

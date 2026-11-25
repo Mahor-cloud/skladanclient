@@ -4,6 +4,7 @@
  */
 
 import { money, pcs } from "@/domain/format"
+import { ownerId } from "@/domain/orders"
 import { available, pid } from "@/domain/stock"
 import { reactive } from "vue"
 
@@ -18,23 +19,29 @@ export const PST = {
 export const pst = (pu) => (pu.isCompleted ? "done" : !pu.isCreated ? "draft" : !pu.isPaid ? "unpaid" : pu.partialCompleted ? "partial" : "receiving")
 export const STEP = { draft: 0, unpaid: 1, receiving: 2, partial: 2, done: 3 }
 
-export const puPerm = (s) => ({
-    create: s.can("create_purchases"),
-    edit: s.can("edit_purchases"),
-    pay: s.can("approve-payment"),
-    exceed: s.isSys || s.can("approve_target_exceed"),
-    del: s.can("delete_purchases")
-})
+/** Права на закупку pu (без неё — право начать новую). Без галочки «Служащий» человек меняет только закупки, которые создал сам, — как на сервере. */
+export const puPerm = (s, pu) => {
+    const mine = !pu || s.isStaff || ownerId(pu) === String(s.user?._id)
+    return {
+        create: mine && s.can("create_purchases"),
+        edit: mine && s.can("edit_purchases"),
+        pay: mine && s.can("approve-payment"),
+        exceed: s.isSys || s.can("approve_target_exceed"),
+        del: mine && s.can("delete_purchases")
+    }
+}
 
 export const sum = (arr, fn) => arr.reduce((s, x) => s + (fn(x) || 0), 0)
 /** Позиции с количеством: черновик сервер создаёт со всеми товарами по 0. */
 export const puItems = (pu) => (pu.items || []).filter((i) => i.quantity > 0)
+/** Цены строк закреплены: после оплаты или в созданной закупке с заказом lit-na.ru (там цены сайта). Черновик с оформляемым заказом — по текущим. */
+export const puFixed = (pu) => !!(pu?.isPaid || (pu?.litna && pu.isCreated))
 /**
- * Сумма закупки: после оплаты — записанная сервером (цены строк зафиксированы, смена цены товара их не меняет);
- * до оплаты — по текущим ценам; если цены товара нет (его нет в каталоге) — тоже сумма, сохранённая сервером.
+ * Сумма закупки: при закреплённых ценах — записанная сервером (смена цены товара её не меняет);
+ * иначе — по текущим ценам; если цены товара нет (его нет в каталоге) — тоже сумма, сохранённая сервером.
  */
 export function puTotal(pu, priceOf) {
-    if (pu.isPaid && pu.totalAmount) return pu.totalAmount
+    if (puFixed(pu) && pu.totalAmount) return pu.totalAmount
     let s = 0
     for (const i of puItems(pu)) {
         const price = priceOf(pid(i))
@@ -43,15 +50,17 @@ export function puTotal(pu, priceOf) {
     }
     return s
 }
-/** Товар строки с её ценой: после оплаты — цена, записанная в закупке (у старых закупок её может не быть), до оплаты — текущая. */
-export const puLineProduct = (pu, it, p) => (pu?.isPaid && typeof it.price === "number" && it.price !== p.price ? { ...p, price: it.price } : p)
+/** Товар строки с её ценой: при закреплённых ценах — записанная в закупке (у старых закупок её может не быть), иначе — текущая. */
+export const puLineProduct = (pu, it, p) => (puFixed(pu) && typeof it.price === "number" && it.price !== p.price ? { ...p, price: it.price } : p)
+/** К оплате: у созданной закупки с заказом lit-na.ru — сумма заказа с доставкой (в сумму закупки доставка не входит), иначе — сумма закупки. */
+export const puPayTotal = (pu, total) => (pu?.isCreated && pu.litna?.total) || total
 export const puPieces = (pu) => sum(puItems(pu), (i) => i.quantity)
 export const puGot = (pu) => sum(puItems(pu), (i) => i.confirmedQuantity || 0)
 
 /** Чей ход: { mine, short, text }. total — сумма, left — сколько не довезли, got — сколько принято. */
 export function puTurn(st, pm, { total = 0, left = 0, got = 0 } = {}) {
-    if (st === "draft") return pm.edit ? { mine: true, short: "Заполните и создайте", text: "Заполните количества и создайте закупку" } : { short: "Собирает кладовщик", text: "Кладовщик собирает закупку" }
-    if (st === "unpaid") return pm.pay ? { mine: true, short: "Оплатите", text: `Оплатите ${money(total)} поставщику` } : { short: "Ждёт казначея", text: "Ждёт оплаты казначеем" }
+    if (st === "draft") return pm.edit ? { mine: true, short: "Заполните и создайте", text: "Заполните количества и создайте закупку" } : { short: "Собирается", text: "Закупка собирается" }
+    if (st === "unpaid") return pm.pay ? { mine: true, short: "Оплатите", text: `Оплатите ${money(total)} поставщику` } : { short: "Ждёт оплаты", text: "Ждёт оплаты" }
     if (st === "receiving") return pm.edit ? { mine: true, short: "Примите товар", text: "Примите товар на склад" } : { short: "Ждёт приёмки", text: "Оплачена, ждёт приёмки на складе" }
     if (st === "partial") return pm.edit ? { mine: true, short: `Довнесите ${pcs(left)}`, text: `Довнесите ${pcs(left)}, когда довезут` } : { short: `Не довезли ${pcs(left)}`, text: `Не довезли ${pcs(left)}` }
     return { short: "Принята", text: `Принята полностью, склад пополнен на ${pcs(got)}` }

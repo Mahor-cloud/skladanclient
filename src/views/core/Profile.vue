@@ -66,6 +66,25 @@ async function changePassword() {
         pwdSaving.value = false
     }
 }
+
+/* Обратная связь: сервер пересылает текст владельцу в Telegram. При ошибке окно и текст остаются. */
+const fb = ref(null) // { text, sending } пока окно открыто
+const fbSheet = ref(null)
+async function sendFeedback() {
+    const f = fb.value
+    const text = f.text.trim()
+    if (!text || f.sending) return
+    f.sending = true
+    try {
+        await axiosInstance.post("/feedback", { text })
+        toast({ type: "success", title: "Отправлено" })
+        fbSheet.value?.close("sent")
+    } catch (err) {
+        toast({ type: "error", title: "Не отправлено", text: [].concat(err?.response?.data?.message || err.message).join(". "), timeout: 5000 })
+    } finally {
+        f.sending = false
+    }
+}
 </script>
 
 <template>
@@ -131,7 +150,10 @@ async function changePassword() {
                     @update:model-value="pickScale"
                 />
             </section>
-            <UiBtn label="Выйти из аккаунта" icon="logout" kind="danger-ghost" block size="lg" @click="logout" />
+            <div class="menu__acts">
+                <UiBtn label="Обратная связь" icon="chat" kind="secondary" block size="lg" @click="fb = { text: '', sending: false }" />
+                <UiBtn label="Выйти из аккаунта" icon="logout" kind="danger-ghost" block size="lg" @click="logout" />
+            </div>
             <p class="menu__foot">Литературный подкомитет АН г.Саратов</p>
         </div>
     </UiSheet>
@@ -144,6 +166,14 @@ async function changePassword() {
         <template #footer>
             <UiBtn label="Отмена" kind="secondary" size="lg" :disabled="pwdSaving" @click="pwd = null" />
             <UiBtn label="Сменить" icon="check" kind="success" size="lg" type="submit" form="pwd-form" :loading="pwdSaving" />
+        </template>
+    </UiSheet>
+    <UiSheet v-if="fb" ref="fbSheet" title="Обратная связь" sub="Баги, пожелания, предложения" size="sm" @close="fb = null">
+        <form id="fb-form" class="pform" @submit.prevent="sendFeedback">
+            <UiField v-model="fb.text" :rows="6" aria-label="Сообщение" maxlength="2000" autofocus />
+        </form>
+        <template #footer>
+            <UiBtn label="Отправить" size="lg" type="submit" form="fb-form" :loading="fb.sending" :disabled="!fb.text.trim()" />
         </template>
     </UiSheet>
 </template>

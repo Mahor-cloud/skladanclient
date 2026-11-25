@@ -26,6 +26,10 @@ describe("подписи и цвета записей", () => {
     })
     it("группы для фильтра", () => {
         expect(eventGroup("order-updated")).toBe("orders")
+        // события lit-na.ru — в группе «Закупки»
+        expect(eventGroup("litna-links-updated")).toBe("purchases")
+        expect(eventGroup("litna-detached")).toBe("purchases")
+        expect(eventLabel("litna-links-updated")).toBe("Привязка к lit-na.ru изменена")
         expect(eventGroup("order-refund-pending")).toBe("pay")
         expect(eventGroup("inventory-deleted-after-completion")).toBe("inventory")
         expect(eventGroup("role-created")).toBe("people")

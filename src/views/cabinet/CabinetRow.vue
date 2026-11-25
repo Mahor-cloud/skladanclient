@@ -7,7 +7,7 @@ import { money } from "@/domain/format"
 import { available } from "@/domain/stock"
 import { UiCover, UiIcon, UiIconBtn, UiStepper } from "@/ui"
 import { computed, inject } from "vue"
-import { CAB, rowKey } from "./cabinet"
+import { CAB, ownCover, rowKey } from "./cabinet"
 
 // Строка «Моего склада». Своя компонента у каждой строки: нажатие «+» перерисовывает только её (значения — из общего словаря правок).
 const props = defineProps({
@@ -21,14 +21,14 @@ const have = computed(() => val(props.r, "currentQty"))
 const ord = computed(() => props.r.inOrderQty || 0)
 const need = computed(() => Math.max(0, base.value - have.value - ord.value))
 const stock = computed(() => (props.p ? available(props.p) : props.r.stockQty || 0))
-const cov = computed(() => props.p || { _id: props.r.productId, name: props.r.productName, category: props.r.category })
+const cov = computed(() => (props.r.isCustom ? ownCover(props.r.cabinetItemId, props.r.productName, props.r) : props.p || { _id: props.r.productId, name: props.r.productName, category: props.r.category }))
 </script>
 
 <template>
     <div class="trow trow--cab" :class="{ 'is-need': need, 'is-own': r.isCustom }" :data-row="rowKey(r)">
         <span class="trow__cov">
-            <span v-if="r.isCustom" class="cover cover--sm cover--own"><UiIcon name="tag" :size="22" /></span>
-            <UiCover v-else :product="cov" size="sm" />
+            <UiCover v-if="cov" :product="cov" size="sm" />
+            <span v-else class="cover cover--sm cover--own"><UiIcon name="tag" :size="22" /></span>
         </span>
         <div class="trow__main">
             <span class="trow__n">

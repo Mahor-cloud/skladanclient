@@ -22,6 +22,29 @@
 .linkbtn:hover i { color: var(--primary-text); }
 .status--partial { background: var(--st-partial-bg); color: var(--st-partial); }
 .mtrack--done i { background: var(--success) !important; }
+/* Полоска шагов над кнопкой, пока сервер работает на lit-na.ru: число сегментов — по операции */
+.mtrack--steps { grid-template-columns: repeat(var(--n, 4), 1fr); gap: 3px; padding: 0 var(--sp-2); }
+.mtrack--steps i { height: 4px; transition: background var(--d-2); }
+@media (prefers-reduced-motion: reduce) { .mtrack--steps i.is-cur { animation: none; } }
+.stepbtn { display: grid; gap: var(--sp-3); min-width: 0; }
+.abar .stepbtn { flex: 1 1 auto; max-width: 260px; }
+.abar .stepbtn.is-on, .abar .stepbtn .btn { max-width: none; }
+/* Крупный текст и узкий телефон (уже 380): подпись главной кнопки не режется — кнопка без значка и по своей ширине, место уступает строка над суммой */
+:root[data-scale="large"] .abar .stepbtn:not(.is-on) { flex: 0 0 auto; }
+:root[data-scale="large"] .abar .stepbtn:not(.is-on) .btn > .i { display: none; }
+:root[data-scale="large"] .abar__sum { flex: 1 1 0; }
+:root[data-scale="large"] .abar > .btn--icon { flex: 0 0 auto; }
+@media (max-width: 379px) {
+  .abar .stepbtn:not(.is-on) { flex: 0 0 auto; }
+  .abar .stepbtn:not(.is-on) .btn > .i { display: none; }
+  .abar__sum { flex: 1 1 0; }
+  .abar > .btn--icon { flex: 0 0 auto; }
+}
+.ov__foot > .stepbtn { flex: 1 1 0; }
+.ov__foot > .stepbtn > .btn { padding: 0 var(--sp-6); min-width: 0; }
+.ov__foot:has(.stepbtn) { align-items: flex-end; }
+/* Кнопка-ссылка в строке «ключ — значение» (подтверждение заказа: «Гость · Войти»): цвет кнопки, а не подписи строки */
+.confirm-extra .kv .btn .btn__l { color: inherit; }
 .confirm--warning .confirm__i { background: var(--warning-soft); color: var(--warning-text); }
 .btn--primary.btn--warn { background: var(--warning); color: #1D1E25; }
 .btn--primary.btn--warn:hover:not(:disabled) { background: color-mix(in oklab, var(--warning) 88%, #000); box-shadow: 0 6px 18px -8px var(--warning); }
@@ -85,7 +108,8 @@ label.btn { cursor: pointer; }
 .trow:last-child { border-bottom: 0; }
 .trow:has(> .trow__ctl:empty) { grid-template-areas: "cov main side"; }
 .trow__cov { grid-area: cov; display: block; }
-.trow__main { grid-area: main; min-width: 0; display: grid; gap: 3px; align-content: start; }
+.trow__main { grid-area: main; min-width: 0; display: grid; grid-template-columns: minmax(0, 1fr); gap: 3px; align-content: start; }
+.trow__m .tag { white-space: normal; height: auto; min-height: 24px; padding-block: 3px; line-height: 1.25; }
 .trow__n { font-size: var(--fs-15); font-weight: var(--fw-bold); line-height: var(--lh-snug); overflow-wrap: anywhere; }
 .trow__m { font-size: var(--fs-13); color: var(--text-2); font-weight: var(--fw-medium); }
 .trow__m .desk { display: none; }
@@ -158,10 +182,10 @@ a.trow:hover .trow__n { color: var(--primary-text); }
 .purow__no { grid-area: no; display: grid; min-width: 0; }
 .purow__no b { font-size: var(--fs-18); font-weight: var(--fw-heavy); }
 .purow__no small { font-size: var(--fs-13); color: var(--text-2); font-weight: var(--fw-medium); }
-.purow__st { grid-area: st; justify-self: end; }
+.purow__st { grid-area: st; justify-self: end; display: grid; justify-items: end; gap: var(--sp-2); }
 .purow__track { grid-area: track; }
 .purow__turn { grid-area: turn; }
-.purow__items { grid-area: items; display: flex; align-items: center; gap: var(--sp-4); min-width: 0; }
+.purow__items { grid-area: items; display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-2) var(--sp-4); min-width: 0; }
 .purow__items small, .purow__sum small { font-size: var(--fs-13); color: var(--text-2); font-weight: var(--fw-bold); white-space: nowrap; }
 .purow__sum { grid-area: sum; text-align: right; }
 .purow__sum b { display: block; font-size: var(--fs-18); font-weight: var(--fw-heavy); letter-spacing: var(--ls-tight); white-space: nowrap; }
@@ -169,6 +193,15 @@ a.trow:hover .trow__n { color: var(--primary-text); }
 .purow[data-st="draft"] .purow__got, .purow[data-st="unpaid"] .purow__got { display: none; }
 .purow__who, .purow__d, .purow__chev { display: none; }
 .purow--sk { display: grid; grid-template-areas: none; grid-template-columns: 1fr; gap: var(--sp-4); }
+/* Узкий телефон и крупный текст на телефоне: статус — своей строкой под заголовком, иначе заголовок ломается по слову */
+@media (max-width: 379px) {
+  .purow { grid-template-areas: "no no" "st st" "track track" "turn turn" "items sum" "got got"; }
+  .purow__st { justify-self: start; display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-2) var(--sp-3); }
+}
+@media (max-width: 899px) {
+  :root[data-scale="large"] .purow { grid-template-areas: "no no" "st st" "track track" "turn turn" "items sum" "got got"; }
+  :root[data-scale="large"] .purow__st { justify-self: start; display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-2) var(--sp-3); }
+}
 .gbar { display: grid; gap: var(--sp-2); width: 100%; }
 .gbar__t { font-size: var(--fs-13); font-weight: var(--fw-bold); color: var(--text-2); white-space: nowrap; }
 .gbar .bar { height: 6px; }
@@ -181,7 +214,7 @@ a.trow:hover .trow__n { color: var(--primary-text); }
   .purow > * { grid-area: auto !important; }
   .purow__no small, .purow__track { display: none; }
   .purow__no b { font-size: var(--fs-16); }
-  .purow__st { justify-self: start; }
+  .purow__st { justify-self: start; justify-items: start; }
   .purow__who { display: flex; align-items: center; gap: var(--sp-4); min-width: 0; }
   .purow__who b { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: var(--fw-bold); }
   .purow__sum b { font-size: var(--fs-16); }
@@ -205,6 +238,8 @@ a.trow:hover .trow__n { color: var(--primary-text); }
   .work .listtools { order: 4; } #pu-list, #inv-list { order: 5; } .work .addrow { order: 6; } .work .w-track { order: 8; }
   /* Итог уже виден в закреплённой панели — на телефоне подробная сводка уходит под список, работа начинается сразу. */
   .work:has(.abar) .blk:not(.w-track) { order: 7; }
+  /* Заказ lit-na.ru, ждущий оплаты: пункт, доставка, счёт и накладная — сразу под шапкой, как у завершённой закупки */
+  .work:has(.abar) .blk.blk--top { order: 3; }
   .work .ohero p { font-size: var(--fs-14); }
 }
 @media (min-width: 900px) {
@@ -751,6 +786,19 @@ a.sorow:hover .sorow__u b { color: var(--primary-text); }
 .co__ua .btn { flex: 1; }
 @media (min-width: 900px) { .co__ua { width: auto; } }
 .cos__db { margin-top: var(--sp-6); }
+/* Обратная связь (супер-админ): текст целиком, с переносами строк */
+.fbs { display: grid; gap: var(--sp-4); }
+.fbs__more { margin-top: var(--sp-5); }
+/* удаление — под списком на любой ширине: в шапке четыре кнопки переносили заголовок на две строки */
+.fbs__acts { display: flex; flex-direction: column; gap: var(--sp-3); margin-top: var(--sp-5); }
+@media (min-width: 900px) { .fbs__acts { flex-direction: row; justify-content: flex-end; } }
+.fbm { padding: var(--sp-5) var(--sp-6); display: grid; gap: var(--sp-3); }
+.fbm--new { box-shadow: inset 4px 0 0 var(--gold), var(--sh-xs), inset 0 0 0 1px var(--line); }
+.fbm__top { display: flex; align-items: center; gap: var(--sp-4); }
+.fbm__who { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+.fbm__who b { display: block; font-weight: var(--fw-heavy); }
+.fbm__who small { display: block; font-size: var(--fs-13); color: var(--text-2); font-weight: var(--fw-medium); }
+.fbm__text { white-space: pre-wrap; overflow-wrap: anywhere; line-height: var(--lh-body); }
 .formsec { font-size: var(--fs-12); text-transform: uppercase; letter-spacing: var(--ls-caps); color: var(--text-2); font-weight: var(--fw-heavy); padding-top: var(--sp-5); border-top: 1.5px dashed var(--line-strong); }
 
 .seeds { display: grid; gap: var(--sp-4); }
@@ -876,3 +924,14 @@ input[type="file"].sr { font-size: 16px; }
 }
 /* Узкий экран: через одну подпись оси X, последнюю оставляем */
 @media (max-width: 599px) { .chart__x span:nth-child(even):not(:last-child) { display: none; } }
+
+/* Окно оплаты lit-na.ru: фрейм банка и заставка поверх него, пока форма грузится */
+.payfr { position: relative; height: 60vh; border-radius: var(--r-md); overflow: hidden; }
+.payfr iframe { display: block; width: 100%; height: 100%; border: 0; }
+/* Телефон: форма банка — на всю ширину и оставшуюся высоту окна */
+.ov--sheet.ov--pay .ov__body { display: flex; flex-direction: column; }
+.ov--sheet.ov--pay .payfr { flex: 1; height: auto; min-height: 320px; margin: 0 calc(-1 * var(--sp-7)); border-radius: 0; }
+.payfr__wait { position: absolute; inset: 0; display: grid; grid-template-rows: 1fr auto; justify-items: center; align-items: center; padding-bottom: var(--sp-8); background: var(--bg); font-size: var(--fs-14); transition: opacity var(--d-3), visibility var(--d-3); }
+.payfr__wait.is-off { opacity: 0; visibility: hidden; }
+.payfr__wait .lgo { width: 96px; height: 96px; }
+.payfr__wait span { padding: 0 var(--sp-6); text-align: center; }

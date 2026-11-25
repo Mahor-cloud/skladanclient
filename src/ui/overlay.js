@@ -14,17 +14,59 @@ function syncInert() {
     document.getElementById("app")?.toggleAttribute("inert", layers.length > 0)
     layers.forEach((l, i) => l.root?.value?.toggleAttribute("inert", i < layers.length - 1))
 }
+/* Затемнение под нижним окном — одно на всех (.ov-dim в #layer), у окна поверх окна — своё: когда одно окно сменяется другим,
+   фон не гаснет и не загорается заново. Окно, закрытое действием, держит его, пока экран не уберёт окно и не пройдёт пара кадров:
+   следующее окно экран открывает в том же проходе. HOLD — страховка, если окно так и не убрали. */
+const HOLD = 500 // уход окна (360 мс) + запас
+let dim = null
+let holding = false
+let holdTimer = 0
+const live = () => layers.some((l) => !l.closing.value)
+// общее затемнение горит только под открытым нижним окном: окно поверх, пережившее нижнее, затемняет само
+const lit = () => layers.some((l) => l.base && !l.closing.value)
+function syncDim() {
+    if (!dim?.isConnected) {
+        dim = document.createElement("div")
+        dim.className = "ov-dim"
+        document.getElementById("layer")?.prepend(dim)
+        dim.getBoundingClientRect() // стиль «до»: иначе первое затемнение появится без перехода
+    }
+    const on = holding || lit()
+    // прерванный свайп мог оставить прозрачность, вписанную в элемент: без окна она держала бы пелену на экране
+    if (!on) dim.style.removeProperty("opacity")
+    dim.classList.toggle("is-on", on)
+}
+function release() {
+    clearTimeout(holdTimer)
+    holding = false
+    syncDim()
+}
+/** → true, если окно нижнее (под ним нет открытых): его затемнение — общее. */
 export const layerOpen = (layer) => {
+    const base = (layer.base = !live())
     layers.push(layer)
     document.documentElement.classList.add("has-ov")
     syncInert()
+    syncDim()
+    return base
+}
+/** Окно начало закрываться (closing уже true). hold — закрыто действием, а не жестом: следом может открыться другое окно. */
+export const layerLeave = (hold) => {
+    clearTimeout(holdTimer)
+    holding = hold && !lit()
+    if (holding) holdTimer = setTimeout(release, HOLD)
+    syncDim()
 }
 export const layerClose = (layer) => {
     const i = layers.indexOf(layer)
     if (i >= 0) layers.splice(i, 1)
     if (!layers.length) document.documentElement.classList.remove("has-ov")
     syncInert()
+    syncDim()
+    // окно убрано: следующее экран открыл бы в этом же проходе — через пару кадров ждать больше нечего
+    if (holding && !layers.length) setTimeout(() => !layers.length && release(), 34)
 }
+export const layerDim = () => dim
 export const hasLayers = () => layers.length > 0
 
 if (typeof document !== "undefined") {

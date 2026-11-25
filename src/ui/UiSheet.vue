@@ -5,7 +5,7 @@
  */
 import { computed, onBeforeUnmount, onMounted, ref } from "vue"
 import { isDesk } from "@/composables/useBreakpoint"
-import { layerClose, layerOpen } from "./overlay"
+import { layerClose, layerDim, layerLeave, layerOpen } from "./overlay"
 import UiIconBtn from "./UiIconBtn.vue"
 
 // Окно: на телефоне — лист снизу (закрывается свайпом вниз), на компьютере — окно по центру средней колонки.
@@ -30,22 +30,25 @@ const body = ref(null)
 const scrim = ref(null)
 const uid = "ov" + ++seq
 const closing = ref(false)
+const base = ref(false) // нижнее окно: затемнение под ним общее (overlay.js), своё прозрачно
 let prevFocus = null
 
-async function close(reason = "x") {
+// gesture — окно убрали жестом (Esc, фон, свайп, крестик): следом ничего не откроется, затемнение уходит вместе с окном.
+async function close(reason = "x", gesture = ["esc", "scrim", "swipe", "cancel"].includes(reason)) {
     if (closing.value) return
     if (props.beforeClose && (await props.beforeClose(reason)) === false) return
     closing.value = true
     open.value = false
+    layerLeave(!gesture)
     setTimeout(() => emit("close", reason), 360)
 }
-const layer = { close, root }
+const layer = { close, root, closing }
 // closing — окно уже закрывается: его кнопки не должны повторять действие за время анимации.
 defineExpose({ close, el: root, closing })
 
 onMounted(() => {
     prevFocus = document.activeElement
-    layerOpen(layer)
+    base.value = layerOpen(layer)
     requestAnimationFrame(() => requestAnimationFrame(() => (open.value = true)))
     // Фокус внутрь окна: на компьютере — первое поле, на телефоне — сама панель (без клавиатуры).
     setTimeout(() => {
@@ -72,6 +75,7 @@ let t0 = 0
 let mode = null
 let atTop = false
 let atEnd = false
+const shade = () => (base.value ? layerDim() : scrim.value)
 function touchStart(e) {
     y0 = null
     if (kind.value !== "sheet" || e.touches.length !== 1 || closing.value) return
@@ -85,7 +89,8 @@ function touchStart(e) {
     atEnd = inBody && body.value.scrollTop + body.value.clientHeight >= body.value.scrollHeight - 1
 }
 function touchMove(e) {
-    if (y0 == null) return
+    // окно могли убрать, пока палец тянет лист
+    if (y0 == null || !panel.value) return
     dy = e.touches[0].clientY - y0
     if (!mode) {
         if (Math.abs(dy) < 6) return
@@ -95,16 +100,16 @@ function touchMove(e) {
     }
     if (mode === "close") {
         panel.value.style.transform = `translateY(${Math.max(0, dy)}px)`
-        scrim.value.style.opacity = String(Math.max(0.15, 1 - Math.max(0, dy) / 520))
+        shade().style.opacity = String(Math.max(0.15, 1 - Math.max(0, dy) / 520))
     } else body.value.style.transform = `translateY(${-rubber(-dy)}px)`
     if (e.cancelable) e.preventDefault()
 }
 function touchEnd() {
-    if (y0 == null || !mode) return (y0 = null)
+    if (y0 == null || !mode || !panel.value) return (y0 = null)
     const fast = dy / Math.max(1, Date.now() - t0) > 0.55
     if (mode === "close") {
         panel.value.style.transition = ""
-        scrim.value.style.opacity = ""
+        shade().style.opacity = ""
         panel.value.style.transform = ""
         if (dy > 120 || (dy > 36 && fast)) close("swipe")
     } else {
@@ -124,7 +129,7 @@ let seq = 0
 
 <template>
     <Teleport to="#layer">
-        <div ref="root" class="ov" :class="['ov--' + kind, 'ov--' + size, cls, { 'is-open': open }]">
+        <div ref="root" class="ov" :class="['ov--' + kind, 'ov--' + size, cls, { 'is-open': open, 'ov--base': base }]">
             <div ref="scrim" class="ov__scrim" @click="close('scrim')"></div>
             <section
                 ref="panel"
@@ -148,7 +153,7 @@ let seq = 0
                         <p v-if="sub">{{ sub }}</p>
                     </div>
                     <slot name="actions" />
-                    <UiIconBtn icon="x" label="Закрыть" class="ov__x" @click="close('x')" />
+                    <UiIconBtn icon="x" label="Закрыть" class="ov__x" @click="close('x', true)" />
                 </header>
                 <h2 v-else :id="uid + '-t'" class="sr">{{ label }}</h2>
                 <div ref="body" class="ov__body"><slot :close="close" /></div>

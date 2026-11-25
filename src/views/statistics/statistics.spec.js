@@ -5,7 +5,7 @@
 
 import { describe, expect, it } from "vitest"
 import { money } from "@/domain/format"
-import { axisNum, daySeries, flowRows, flowSeries, niceMax, rangeText, statQuery, statRange, zeroFill } from "./statistics"
+import { axisNum, daySeries, flowRows, flowSeries, flowTotals, niceMax, rangeText, statQuery, statRange, zeroFill } from "./statistics"
 
 const now = Date.UTC(2026, 10, 17, 9, 30)
 
@@ -62,6 +62,22 @@ describe("столбики", () => {
         expect(months).toHaveLength(21)
         expect(months.at(-1).v[0]).toBe(1000)
         expect(months[1].key).toBe("2025-04-01")
+    })
+    it("доставка заказов lit-na.ru входит в поступления и называется отдельно; нет доставки — подсказка прежняя", () => {
+        const range = statRange({ p: "30" }, { now })
+        const buys = [
+            { date: "2026-11-14", amount: 120, shipping: 30 },
+            { date: "2026-11-16", amount: 50 }
+        ]
+        const weeks = flowSeries(range, orders, buys)
+        expect(weeks.reduce((s, w) => s + w.v[1], 0)).toBe(200)
+        const w = weeks.find((x) => x.v[1])
+        expect(weeks.at(-1).tip).toBe(`Неделя с 16.11.2026: Продажи ${money(200)} · Поступления ${money(50)}`)
+        expect(w.tip).toBe(`Неделя с 09.11.2026: Продажи ${money(800)} · Поступления ${money(150)}, в т. ч. доставка ${money(30)}`)
+        expect(flowTotals(orders, buys)).toEqual({ s: 1000, r: 200, d: 30 })
+        // отбор по товарам: сервер доставку не шлёт
+        expect(flowTotals(orders, [{ date: "2026-11-14", amount: 120 }])).toEqual({ s: 1000, r: 120, d: 0 })
+        expect(flowTotals()).toEqual({ s: 0, r: 0, d: 0 })
     })
     it("шкала", () => {
         expect(niceMax(0)).toBe(1)

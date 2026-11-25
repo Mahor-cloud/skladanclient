@@ -6,10 +6,15 @@
 import { money, plural } from "@/domain/format"
 import { ALL, PERMS } from "@/domain/perms"
 import axiosInstance from "@/service/axios"
+import { useLitnaCatalog } from "@/service/queries"
 import { toast, UiBanner, UiBtn, UiCheck, UiCover, UiEmpty, UiError, UiField, UiIcon, UiIconBtn, UiLazy, UiPage, UiSheet, UiSkPage } from "@/ui"
 import { KIND_COVERS } from "@/ui/keys"
 import CoverEdit from "@/views/core/CoverEdit.vue"
 import KindSheet from "@/views/core/KindSheet.vue"
+import { litnaStart } from "@/views/purchases/litna"
+import LitnaField from "@/views/purchases/LitnaField.vue"
+import LitnaSiteSheet from "@/views/purchases/LitnaSiteSheet.vue"
+import { sitePhoto } from "@/views/core/photo"
 import { useQueryClient } from "@tanstack/vue-query"
 import { computed, nextTick, provide, reactive, ref, watch } from "vue"
 import { useRoute } from "vue-router"
@@ -32,7 +37,16 @@ watch(
         if (!val) return
         if (!dirty.roles) roles.value = (val.roles || []).map((r) => ({ name: r.name, permissions: [...(r.permissions || [])] }))
         if (dirty.products) return
-        products.value = (val.products || []).map((p) => ({ _id: ++seq, name: p.name, category: p.category || "", price: Number(p.price) || 0, targetQty: Number(p.targetQty) || 0, coverColor: p.coverColor || "", photo: p.photo || "" }))
+        products.value = (val.products || []).map((p) => ({
+            _id: ++seq,
+            name: p.name,
+            category: p.category || "",
+            price: Number(p.price) || 0,
+            targetQty: Number(p.targetQty) || 0,
+            coverColor: p.coverColor || "",
+            photo: p.photo || "",
+            litnaId: p.litnaId
+        }))
         covers.value = Object.fromEntries((val.kindCovers || []).map((k) => [k.category, k.cover]))
     },
     { immediate: true }
@@ -83,8 +97,28 @@ const ed = ref(null)
 const edSheet = ref(null)
 const kindOpen = ref(false)
 const uploading = ref(false)
+// Товар lit-na.ru у товара шаблона: подсказка сайта — по названию; подтверждается «Готово» и сохранением шаблона.
+const { data: litCat } = useLitnaCatalog({ seeds: true, on: computed(() => tab.value === "products") })
+const litSite = computed(() => (ed.value?.litnaId == null ? null : (litCat.value?.items || []).find((s) => String(s.id) === String(ed.value.litnaId))))
+// Новый товар шаблона из каталога сайта: название, цена, категория (если пуста), привязка и фото кадром по умолчанию.
+const adding = ref(false)
+async function addFromSite(id) {
+    const s = (litCat.value?.items || []).find((x) => String(x.id) === String(id))
+    const e = ed.value
+    if (!s || !e) return
+    // Цена сайта как есть, без округления — как при засеве местности из lit-na.ru.
+    Object.assign(e, { name: s.name, price: String(s.price ?? ""), litnaId: s.id, guess: false, err: "" })
+    if (!e.category.trim() && s.category) e.category = s.category
+    if (!s.image) return
+    uploading.value = true
+    const blob = await sitePhoto(s.id)
+    uploading.value = false
+    if (!blob) return toast({ type: "warning", title: "Фото с lit-na.ru не загрузилось" })
+    if (ed.value === e) setPhoto(blob)
+}
 function edit(item) {
-    ed.value = { item, name: item?.name || "", category: item?.category || "", price: item ? String(item.price) : "", coverColor: item?.coverColor || "", photo: item?.photo || "", err: "" }
+    const lit = litnaStart(item?.litnaId, item ? litCat.value?.suggest?.[item.name] : undefined)
+    ed.value = { item, name: item?.name || "", category: item?.category || "", price: item ? String(item.price) : "", coverColor: item?.coverColor || "", photo: item?.photo || "", litnaId: lit.id, guess: lit.guess, err: "" }
 }
 // Кадр уходит на сервер сразу, в товар попадает его ключ; не вошедшие в сохранённый шаблон фото сервер убирает сам.
 async function setPhoto(blob) {
@@ -120,7 +154,7 @@ function applyEdit() {
     const name = e.name.trim()
     e.err = !name ? "Введите название товара" : products.value.some((p) => p !== e.item && p.name.trim() === name) ? "Товар с таким названием уже есть" : ""
     if (e.err) return
-    const next = { name, category: e.category.trim(), price: Number(e.price) || 0, coverColor: e.coverColor, photo: e.photo }
+    const next = { name, category: e.category.trim(), price: Number(e.price) || 0, coverColor: e.coverColor, photo: e.photo, litnaId: e.litnaId }
     if (e.item) Object.assign(e.item, next)
     else products.value.unshift({ _id: ++seq, targetQty: 0, ...next })
     dirty.products = true
@@ -144,7 +178,7 @@ async function save() {
         }
         if (dirty.products) {
             await axiosInstance.put("/seeds/products", {
-                products: products.value.map(({ name, category, price, targetQty, coverColor, photo }) => ({ name, category, price, targetQty, coverColor, photo })),
+                products: products.value.map(({ name, category, price, targetQty, coverColor, photo, litnaId }) => ({ name, category, price, targetQty, coverColor, photo, litnaId })),
                 kindCovers: Object.entries(covers.value).map(([category, cover]) => ({ category, cover }))
             })
             dirty.products = false
@@ -234,6 +268,7 @@ async function save() {
 
     <UiSheet v-if="ed" ref="edSheet" :title="ed.item ? 'Изменить товар' : 'Новый товар'" size="lg" @close="ed = null">
         <form class="pform" novalidate @submit.prevent="applyEdit">
+            <UiBtn v-if="!ed.item" label="Из lit-na.ru" icon="globe" kind="secondary" block :loading="uploading" @click="adding = true" />
             <CoverEdit
                 :id="ed.item?._id"
                 v-model:color="ed.coverColor"
@@ -241,6 +276,7 @@ async function save() {
                 :category="ed.category"
                 :price="ed.price"
                 :photo="seedPhoto(ed)"
+                :litna="litSite?.image ? litSite.id : null"
                 @photo="setPhoto"
                 @remove="ed.photo = ''"
                 @kind="kindOpen = true"
@@ -251,6 +287,7 @@ async function save() {
                 <UiField :model-value="ed.price" label="Цена" name="price" inputmode="numeric" suffix="₽" maxlength="7" @update:model-value="ed.price = $event.replace(/\D/g, '')" />
             </div>
             <datalist id="seed-kinds"><option v-for="k in kinds" :key="k" :value="k"></option></datalist>
+            <LitnaField :model-value="ed.litnaId" :guess="ed.guess" :items="litCat?.items || []" :title="ed.name" @update:model-value="(ed.litnaId = $event), (ed.guess = false)" />
         </form>
         <template #footer="{ close }">
             <UiBtn v-if="ed.item" label="Удалить" icon="trash" kind="danger-ghost" size="lg" @click="removeProduct" />
@@ -259,4 +296,5 @@ async function save() {
         </template>
     </UiSheet>
     <KindSheet v-if="kindOpen" :kind="ed.category.trim()" :local="{ products, covers }" @done="kindDone" @close="kindOpen = false" />
+    <LitnaSiteSheet v-if="adding" title="Из lit-na.ru" :items="litCat?.items || []" :none="false" @pick="addFromSite" @close="adding = false" />
 </template>

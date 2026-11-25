@@ -7,13 +7,15 @@ import { useSession } from "@/composables/useSession"
 import { date, money, num, pcs, plural, positions, short } from "@/domain/format"
 import { pid } from "@/domain/stock"
 import axiosInstance from "@/service/axios"
-import { useInventoryLock, useProducts, usePurchases } from "@/service/queries"
+import { track } from "@/service/usage"
+import { checkLitna, useInventoryLock, useProducts, usePurchases } from "@/service/queries"
 import { toast, UiAvatar, UiBanner, UiBtn, UiChip, UiCoverStack, UiEmpty, UiError, UiIcon, UiIconBtn, UiLazy, UiPage, UiSk, UiStatus } from "@/ui"
 import { useQueryClient } from "@tanstack/vue-query"
-import { computed, ref } from "vue"
+import { computed, ref, watch } from "vue"
 import { useRouter } from "vue-router"
 import AskSheet from "./AskSheet.vue"
-import { listState as ls, PST, pst, puGot, puItems, puPerm, puPieces, puTotal, puTurn, STEP, sum } from "./purchase"
+import { litnaCancelled, litnaShipped, litnaTag, origin } from "./litna"
+import { listState as ls, PST, pst, puFixed, puGot, puItems, puPayTotal, puPerm, puPieces, puTotal, puTurn, STEP, sum } from "./purchase"
 
 // Список закупок: сводка, фильтры по статусу, поиск по номеру и товару; закупка открывается отдельной страницей.
 const router = useRouter()
@@ -23,6 +25,27 @@ const pm = computed(() => puPerm(plain.value))
 const { data: purchases, isPending, isError, refetch } = usePurchases()
 const { data: products } = useProducts()
 const { lock } = useInventoryLock()
+
+// Неоплаченные заказы lit-na.ru (и отменённые на сайте — оплата может дойти позже): при открытии списка один раз спросить сайт.
+const asked = new Set()
+watch(
+    purchases,
+    (list) => {
+        for (const pu of list || []) {
+            if (!pu.litna || !pu.isCreated || pu.isPaid || asked.has(pu._id)) continue
+            asked.add(pu._id)
+            checkLitna(pu._id).then((r) => {
+                if (r.paid || r.reverted) qc.invalidateQueries({ queryKey: ["purchases"] })
+                // Заказ отменён на сайте — закупка снова черновик: текст сервера (проверка — одна на закупку за открытие списка).
+                // gone (записи заказа нет — перенос местности) — не отмена: молча.
+                if (!r.reverted) return
+                track("error", "Заказ отменён на lit-na.ru")
+                toast({ type: "warning", title: r.message || "Заказ отменён на lit-na.ru", timeout: 15000 })
+            })
+        }
+    },
+    { immediate: true }
+)
 
 const byId = computed(() => new Map((products.value || []).map((p) => [String(p._id), p])))
 const priceOf = (id) => byId.value.get(id)?.price
@@ -34,7 +57,9 @@ const all = computed(() =>
             const total = puTotal(pu, priceOf)
             const pieces = puPieces(pu)
             const got = puGot(pu)
-            return { _id: pu._id, pu, st, items, total, pieces, got, covers: items.map((i) => byId.value.get(pid(i)) || { _id: pid(i), name: "" }), turn: puTurn(st, pm.value, { total, left: pieces - got, got }) }
+            // pay — к оплате (с доставкой заказа сайта), как на странице закупки; total — сумма самой закупки
+            const pay = puPayTotal(pu, total)
+            return { _id: pu._id, pu, st, items, total, pay, pieces, got, covers: items.map((i) => byId.value.get(pid(i)) || { _id: pid(i), name: "" }), turn: litnaCancelled(pu) && st === "unpaid" ? { short: "Заказ отменён", text: "Заказ отменён на сайте" } : puTurn(st, puPerm(plain.value, pu), { total: pay, left: pieces - got, got }) }
         })
         .sort((a, b) => b.pu.purchaseNumber - a.pu.purchaseNumber)
 )
@@ -123,11 +148,11 @@ async function create(yes) {
         <div v-if="all.length" class="kpis kpis--3">
             <div class="card kpi">
                 <small>В работе</small><b>{{ act.length }} {{ plural(act.length, ["закупка", "закупки", "закупок"]) }}</b
-                ><span>{{ money(sum(act, (x) => x.total)) }}{{ act.some((x) => !x.pu.isPaid) ? " по текущим ценам" : "" }}</span>
+                ><span>{{ money(sum(act, (x) => x.total)) }}{{ act.some((x) => !puFixed(x.pu)) ? " по текущим ценам" : "" }}</span>
             </div>
             <div class="card kpi">
-                <small>Ждут оплаты</small><b :class="{ acc: unpaid.length }">{{ money(sum(unpaid, (x) => x.total)) }}</b
-                ><span>{{ unpaid.length }} {{ plural(unpaid.length, ["закупка", "закупки", "закупок"]) }} у казначея</span>
+                <small>Ждут оплаты</small><b :class="{ acc: unpaid.length }">{{ money(sum(unpaid, (x) => x.pay)) }}</b
+                ><span>{{ unpaid.length }} {{ plural(unpaid.length, ["закупка", "закупки", "закупок"]) }}</span>
             </div>
             <div class="card kpi">
                 <small>Едет на склад</small><b>{{ pcs(onWay.pcs) }}</b
@@ -158,7 +183,11 @@ async function create(yes) {
                 <template #default="{ item: x }">
                     <RouterLink class="purow" :to="{ name: 'purchase', params: { id: x.pu._id } }" :data-st="x.st">
                         <span class="purow__no"
-                            ><b>Закупка №{{ x.pu.purchaseNumber }}</b
+                            ><b
+                                >Закупка №{{ x.pu.purchaseNumber
+                                }}<template v-if="origin(x.pu)">
+                                    <span class="tag" :class="x.pu.litna ? 'tag--teal' : 'tag--neutral'" style="margin-left: var(--sp-3)">{{ origin(x.pu) }}</span></template
+                                ></b
                             ><small>{{ date(x.pu.purchaseDate) }} · {{ x.pu.user?.name || "" }}</small></span
                         >
                         <span class="purow__who"
@@ -171,7 +200,9 @@ async function create(yes) {
                             ><b>{{ money(x.total) }}</b
                             ><small>{{ pcs(x.pieces) }}</small></span
                         >
-                        <span class="purow__st"><UiStatus :st="PST[x.st].st" :label="PST[x.st].label" size="sm" /></span>
+                        <span class="purow__st"
+                            ><UiStatus :st="PST[x.st].st" :label="PST[x.st].label" size="sm" /><span v-if="litnaTag(x.pu)" class="tag" :class="litnaShipped(x.pu) ? 'tag--teal' : 'tag--neutral'">{{ litnaTag(x.pu) }}</span></span
+                        >
                         <span class="purow__turn turn" :class="{ 'turn--mine': x.turn.mine }">{{ x.turn.text }}</span>
                         <span class="purow__got">
                             <small v-if="x.st === 'draft' || x.st === 'unpaid'" class="muted">—</small>

@@ -58,7 +58,7 @@ watch(
     (f) => FILTERS[f] && (view.f = f),
     { immediate: true }
 )
-// Без выбора: казначею — оплаты к подтверждению, кладовщику — выдача, остальным — все активные.
+// Без выбора: с правом подтверждать оплату — оплаты к подтверждению, с правом править товары — выдача, остальным — все активные.
 const filter = computed(() => (keys.value.includes(view.f) ? view.f : !isStaff.value ? "active" : pay.value && !stock.value ? "paid" : stock.value && !pay.value ? "ready" : "active"))
 // Поиск идёт по всем заказам, какой бы фильтр ни стоял; выбор фильтра поиск заканчивает.
 const shown = computed(() => (view.q.trim() ? "all" : filter.value))

@@ -35,7 +35,7 @@ const SHEETS = { profile: "Профиль", push: "Уведомления" }
 export const screenOf = (r) => (r?.meta?.bare ? "" : SHEETS[r?.query?.sheet] || PANES[r?.name] || (typeof r?.meta?.title === "string" ? r.meta.title : String(r?.name || "")))
 
 /* ---------- Подпись элемента ---------- */
-const PERIOD = /^\d+\s(дн|час|мин|нед|мес)/ // «7 дней» и «30 дней» — разные кнопки
+const PERIOD = /^\d+\s(дн|ч|мин|нед|мес)/ // «7 дней», «30 дней», «24 ч» — разные кнопки
 /** Подпись без переменных частей: имени после двоеточия, текста в кавычках, номеров, сумм и счётчиков. */
 export const cleanLabel = (raw) => {
     let s = String(raw || "")
@@ -54,7 +54,8 @@ const PICK = "button, a[href], [role=button], input, select, textarea, summary, 
  */
 export function labelOf(target, linkTitle = () => "") {
     let el = target?.closest?.(PICK)
-    if (!el || el.closest("[data-track-off]")) return null
+    // выключенная кнопка (идёт работа, на ней подпись шага) нажатием не считается, даже если браузер отдал клик по её тексту
+    if (!el || el.matches(":disabled") || el.closest("[data-track-off]")) return null
     if (el.matches("input[type=checkbox], input[type=radio]") && el.closest("label")) el = el.closest("label")
     const own = el.closest("[data-track]")?.dataset.track
     if (own) return { el, label: own.slice(0, 60) }
@@ -65,7 +66,8 @@ export function labelOf(target, linkTitle = () => "") {
     let text = el.getAttribute("aria-label") || (field ? el.getAttribute("placeholder") || el.getAttribute("name") : "")
     if (!text && !field) {
         const copy = el.cloneNode(true)
-        copy.querySelectorAll("small, svg, input, select, textarea, .avatar, .cover").forEach((n) => n.remove())
+        // .field__msg — ошибка и подсказка поля: лежат внутри его подписи, но надписью не являются
+        copy.querySelectorAll("small, svg, input, select, textarea, .avatar, .cover, .field__msg").forEach((n) => n.remove())
         const whole = copy.textContent
         copy.querySelectorAll("b").forEach((n) => n.remove())
         // <b> — обычно счётчик рядом с надписью; если кроме него текста нет, он и есть надпись
@@ -129,6 +131,18 @@ export function enter(name, resume = null) {
 }
 /** Время текущего посещения — чтобы продолжить его после окна поверх экрана. */
 export const visitTime = () => visit
+/**
+ * Окно со своим именем поверх экрана (окно оплаты): пока оно открыто, время идёт на него. Возвращает «назад» —
+ * посещение экрана под ним продолжается, а не считается новым заходом.
+ */
+export function overScreen(name) {
+    const under = screen
+    const was = visitTime()
+    enter(name)
+    return () => screen === name && enter(under, was)
+}
+/** Отметить активность без нажатия: нажатия внутри чужого фрейма (оплата) до счётчика не доходят. */
+export const markActive = () => touch()
 
 /** Событие текущего экрана: показанная ошибка (error) или пустой результат (empty). */
 export const track = (kind, label) => {

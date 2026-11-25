@@ -7,11 +7,15 @@ import { useSession } from "@/composables/useSession"
 import { photoUrl } from "@/domain/covers"
 import { physical } from "@/domain/stock"
 import axiosInstance from "@/service/axios"
-import { useInventoryLock, useProducts } from "@/service/queries"
+import { useInventoryLock, useLitnaCatalog, useProducts } from "@/service/queries"
 import { backTo, confirm, toast, UiBanner, UiBtn, UiChip, UiField, UiSheet } from "@/ui"
 import { useQuery, useQueryClient } from "@tanstack/vue-query"
 import { computed, onBeforeUnmount, reactive, ref, watch } from "vue"
 import { useRouter } from "vue-router"
+import { litnaStart } from "@/views/purchases/litna"
+import LitnaField from "@/views/purchases/LitnaField.vue"
+import LitnaSiteSheet from "@/views/purchases/LitnaSiteSheet.vue"
+import { sitePhoto } from "./photo"
 import CoverEdit from "./CoverEdit.vue"
 import KindSheet from "./KindSheet.vue"
 
@@ -54,6 +58,41 @@ const touch = (key) => {
     delete err[key]
 }
 const digits = (v) => String(v).replace(/\D/g, "")
+
+/* ---------- Товар на lit-na.ru: видит тот, кому видна вкладка аккаунта (право создавать или вести закупки) ---------- */
+const litnaOn = computed(() => can("create_purchases") || can("edit_purchases"))
+const { data: litCat } = useLitnaCatalog({ on: litnaOn })
+const lit = reactive({ id: undefined, guess: false, touched: false })
+watch(
+    [product, litCat],
+    ([p, c]) => {
+        if (!lit.touched) Object.assign(lit, litnaStart(p?.litnaId, c?.suggest?.[props.id]))
+    },
+    { immediate: true }
+)
+const litSite = computed(() => (lit.id == null ? null : (litCat.value?.items || []).find((s) => String(s.id) === String(lit.id))))
+function setLit(v) {
+    Object.assign(lit, { id: v, guess: false, touched: true })
+    dirty.value = true
+}
+// Новый товар из каталога сайта: название, цена сайта, вид (если пуст), привязка и фото — сразу кадром по умолчанию.
+const adding = ref(false)
+const fetching = ref(false)
+async function addFromSite(id) {
+    const s = (litCat.value?.items || []).find((x) => String(x.id) === String(id))
+    if (!s) return
+    // Цена сайта как есть, без округления — как при засеве местности из lit-na.ru.
+    Object.assign(d, { name: s.name, price: String(s.price ?? "") })
+    if (!d.category.trim() && s.category) d.category = s.category
+    setLit(s.id)
+    for (const k of Object.keys(err)) delete err[k]
+    if (!s.image) return
+    fetching.value = true
+    const blob = await sitePhoto(s.id)
+    fetching.value = false
+    if (blob) setPhoto(blob)
+    else toast({ type: "warning", title: "Фото с lit-na.ru не загрузилось" })
+}
 
 const kinds = computed(() => [...new Set((products.value || []).map((p) => p.category).filter(Boolean))])
 const serverPhoto = computed(() => (photo.removed ? null : photoUrl(product.value)))
@@ -105,15 +144,17 @@ async function save() {
     if (Object.keys(err).length) return toast({ type: "warning", title: "Проверьте поля", text: Object.values(err).join(". ") })
 
     const payload = { name, category: d.category.trim(), price: Number(d.price), targetQty: Number(d.targetQty) || 0, coverColor: d.color || null }
+    // Подсказка сайта уходит вместе с сохранением — так она подтверждается.
+    if (litnaOn.value && lit.id !== undefined) payload.litnaId = lit.id
     // Правка шлёт только изменённые поля: один цвет сервер считает косметикой (без истории, push и запрета при инвентаризации).
     if (!isNew) {
         const p = product.value
-        const was = { name: p.name, category: p.category || "", price: p.price, targetQty: p.targetQty || 0, coverColor: p.coverColor || null }
+        const was = { name: p.name, category: p.category || "", price: p.price, targetQty: p.targetQty || 0, coverColor: p.coverColor || null, litnaId: p.litnaId }
         for (const k of Object.keys(payload)) if (payload[k] === was[k]) delete payload[k]
     }
     const photoChanged = !!photo.blob || (photo.removed && !!product.value?.photo)
     if (!isNew && !Object.keys(payload).length && !photoChanged) return done()
-    if (inventory.value && Object.keys(payload).some((k) => k !== "coverColor")) return toast({ type: "error", title: "Изменение товаров запрещено", text: "Идёт инвентаризация" })
+    if (inventory.value && Object.keys(payload).some((k) => k !== "coverColor" && k !== "litnaId")) return toast({ type: "error", title: "Изменение товаров запрещено", text: "Идёт инвентаризация" })
 
     saving.value = true
     let saved = product.value
@@ -164,6 +205,7 @@ const beforeClose = async () => !dirty.value || !!(await confirm({ title: "За�
 <template>
     <UiSheet v-if="allowed && (isNew || product)" ref="sheet" :title="isNew ? 'Новый товар' : 'Изменить товар'" :sub="isNew ? '' : product.name" size="lg" :before-close="beforeClose" @close="toCatalog">
         <form class="pform" novalidate @submit.prevent="save">
+            <UiBtn v-if="isNew && litnaOn" label="Из lit-na.ru" icon="globe" kind="secondary" block :loading="fetching" @click="adding = true" />
             <CoverEdit
                 :id="props.id"
                 :name="d.name"
@@ -171,6 +213,7 @@ const beforeClose = async () => !dirty.value || !!(await confirm({ title: "За�
                 :price="d.price"
                 :photo="shown"
                 :color="d.color"
+                :litna="litSite?.image ? litSite.id : null"
                 @update:color="(d.color = $event), (dirty = true)"
                 @photo="setPhoto"
                 @remove="removePhoto"
@@ -182,6 +225,7 @@ const beforeClose = async () => !dirty.value || !!(await confirm({ title: "За�
                 <UiField :model-value="d.price" label="Цена" name="price" inputmode="numeric" suffix="₽" :error="err.price" required @update:model-value="(d.price = digits($event)), touch('price')" />
                 <UiField :model-value="isNew ? '0' : String(physical(product))" label="Остаток" readonly hint="Меняют заказы, закупки и инвентаризация" tabindex="-1" />
             </div>
+            <LitnaField v-if="litnaOn" :model-value="lit.id" :guess="lit.guess" :items="litCat?.items || []" :title="d.name" @update:model-value="setLit" />
             <div class="field">
                 <span class="field__label">Вид <span class="req">*</span></span>
                 <div class="kinds" role="group" aria-label="Вид"><UiChip v-for="k in kinds" :key="k" class="chip--sm" :label="k" :active="d.category === k" @click="(d.category = k), touch('category')" /></div>
@@ -195,7 +239,7 @@ const beforeClose = async () => !dirty.value || !!(await confirm({ title: "За�
                 inputmode="numeric"
                 suffix="шт."
                 :readonly="!isSys"
-                :hint="isSys ? 'Если 0 — нет ограничения. Цель ограничивает закупку: кладовщик не сможет заказать в закупке больше цели без подтверждения администратора' : 'Цель закупки задаёт только главный администратор компании'"
+                :hint="isSys ? 'Если 0 — нет ограничения. Больше цели в закупке — только с правом подтверждать превышение' : 'Цель закупки задаёт только главный администратор компании'"
                 @update:model-value="(d.targetQty = digits($event)), touch('targetQty')"
             />
             <div v-if="goals" class="goals">
@@ -218,4 +262,5 @@ const beforeClose = async () => !dirty.value || !!(await confirm({ title: "За�
         </template>
     </UiSheet>
     <KindSheet v-if="kindOpen" :kind="d.category.trim()" @done="kindDone" @close="kindOpen = false" />
+    <LitnaSiteSheet v-if="adding" title="Из lit-na.ru" :items="litCat?.items || []" :none="false" @pick="addFromSite" @close="adding = false" />
 </template>

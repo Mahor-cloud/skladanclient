@@ -16,7 +16,7 @@ import { errText, roleBrief, roleId, rolePerms, STRENGTH, strength, useRoles, us
 // Карточка пользователя: создание (admin-user-new) и правка (admin-user) — окно поверх списка.
 const props = defineProps({ id: { type: String, default: "" } })
 const queryClient = useQueryClient()
-const { user, can } = useSession()
+const { user, can, isSys } = useSession()
 const { data: users } = useUsers()
 const { data: rolesData } = useRoles()
 const { data: orders } = useActiveOrders()
@@ -25,7 +25,9 @@ const isNew = !props.id
 const u = computed(() => (users.value || []).find((x) => x._id === props.id))
 const sys = computed(() => !!u.value?.role?.isSystem)
 // Сервер меняет пользователей только при флаге «Служащий» (AdminGuard) и праве; иначе карточка — для просмотра.
-const ro = computed(() => !user.value?.isAdmin || !can(isNew ? "create_users" : "edit_users"))
+// Карточку председателя и системную роль меняет только председатель — как на сервере.
+const ro = computed(() => !user.value?.isAdmin || !can(isNew ? "create_users" : "edit_users") || (sys.value && !isSys.value))
+const staffEdit = computed(() => !ro.value && (isNew || (isSys.value && !sys.value)))
 const roles = computed(() => rolesData.value || [...new Map((users.value || []).filter((x) => x.role?._id).map((x) => [x.role._id, x.role])).values()])
 const toList = () => backTo({ name: "admin" })
 let leaving = false
@@ -90,8 +92,8 @@ async function save() {
 
     const payload = { name: d.name.trim(), login, role: d.role }
     if (d.passOpen) payload.password = d.pass
-    // «Служащий» сервер даёт задать при создании; менять у существующего может только супер-админ.
-    if (isNew) payload.isAdmin = d.isAdmin
+    // «Служащий» задаётся при создании; у существующего его меняет председатель (у председателя галочка не снимается) или супер-админ.
+    if (staffEdit.value) payload.isAdmin = d.isAdmin
     saving.value = true
     try {
         await (isNew ? axiosInstance.post("/auth/create", payload) : axiosInstance.put(`/auth/${props.id}`, payload))
@@ -182,8 +184,8 @@ const beforeClose = async () => !dirty.value || !!(await confirm({ title: "За�
             <div class="field" :class="{ 'is-invalid': err.role }">
                 <span class="field__label">Роль</span>
                 <div class="rpicks" role="radiogroup" aria-label="Роль" data-track="Роль пользователя">
-                    <label v-for="r in roles" :key="r._id" class="rpick" :class="{ 'is-disabled': sys && r._id !== d.role }"
-                        ><input v-model="d.role" type="radio" name="role" :value="r._id" :disabled="sys || ro" @change="touch('role')" /><span class="rpick__b"
+                    <label v-for="r in roles" :key="r._id" class="rpick" :class="{ 'is-disabled': (sys && r._id !== d.role) || (r.isSystem && !isSys) }"
+                        ><input v-model="d.role" type="radio" name="role" :value="r._id" :disabled="sys || ro || (r.isSystem && !isSys)" @change="touch('role')" /><span class="rpick__b"
                             ><b>{{ r.isSystem ? r.name + " · председатель" : r.name }}</b
                             ><small>{{ roleBrief(r).join(" · ") }}</small></span
                         ><span class="rpick__n">{{ rolePerms(r).length }}</span></label
@@ -191,7 +193,7 @@ const beforeClose = async () => !dirty.value || !!(await confirm({ title: "За�
                 </div>
                 <span v-if="err.role" class="field__msg field__msg--err"><UiIcon name="alert" :size="16" />{{ err.role }}</span>
             </div>
-            <UiSwitch :model-value="d.isAdmin" label="Служащий склада" hint="Доступ к служебным разделам" :disabled="!isNew || ro" @update:model-value="(d.isAdmin = $event), touch('isAdmin')" />
+            <UiSwitch :model-value="d.isAdmin" label="Служащий" hint="Все заказы и склад; с правами роли — оплаты, товары, чужие заказы и закупки, пользователи" :disabled="!staffEdit" @update:model-value="(d.isAdmin = $event), touch('isAdmin')" />
         </form>
         <template #footer="{ close }">
             <UiBtn v-if="!isNew && !ro && !sys && can('delete_users')" label="Удалить" icon="trash" kind="danger-ghost" size="lg" @click="remove" />

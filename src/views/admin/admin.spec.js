@@ -5,7 +5,7 @@
 
 import { tabsFor } from "@/domain/nav"
 import { describe, expect, it } from "vitest"
-import { menuCtx, menuRows, moveTab, orderedPerms, pruneMenu, roleBrief, strength, toggleTab } from "./admin"
+import { adminHome, menuCtx, menuRows, moveTab, orderedPerms, pruneMenu, roleBrief, settingsEmpty, strength, toggleTab } from "./admin"
 
 describe("roleBrief", () => {
     it("системная роль — свои три метки", () => expect(roleBrief({ isSystem: true, permissions: [] })).toEqual(["Всё в компании", "Правка завершённых заказов", "Цели закупки"]))
@@ -54,4 +54,16 @@ describe("нижнее меню роли", () => {
                 []
             ).every((x) => x.ok)
         ).toBe(true))
+})
+
+describe("куда ведёт «Админка» без права на пользователей", () => {
+    const s = (perms, isStaff = false) => ({ isStaff, can: (p) => perms.includes(p) })
+    it("настройки пусты и есть права закупок — сразу вкладка lit-na.ru, иначе «Настройки»", () => {
+        expect(settingsEmpty(s(["create_purchases"]))).toBe(true)
+        expect(adminHome(s(["create_purchases"]))).toBe("admin-litna")
+        expect(adminHome(s(["edit_purchases"]))).toBe("admin-litna")
+        expect(adminHome(s(["create_purchases", "view-messages"]))).toBe("admin-settings")
+        expect(adminHome(s(["create_purchases"], true))).toBe("admin-settings")
+        expect(adminHome(s([]))).toBe("admin-settings")
+    })
 })

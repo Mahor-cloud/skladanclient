@@ -5,6 +5,7 @@
  */
 import { toast, UiBtn, UiIcon, UiSheet } from "@/ui"
 import { ref } from "vue"
+import { PHOTO } from "./photo"
 
 // Кадрирование фото товара — как при установке аватарки: рамка в пропорциях обложки (6:7), фото двигается и масштабируется
 // (ползунок, колесо, щипок). Его можно уменьшить так, чтобы вошло целиком, — тогда поля прозрачные.
@@ -88,8 +89,7 @@ function up(ev) {
     pinch = 0
 }
 function done() {
-    const W = 360
-    const H = 420
+    const { W, H } = PHOTO
     const k = W / st.W
     const cv = document.createElement("canvas")
     cv.width = W
@@ -106,7 +106,7 @@ function done() {
             sheet.value.close("ok")
         },
         "image/webp",
-        0.9
+        PHOTO.quality
     )
 }
 </script>

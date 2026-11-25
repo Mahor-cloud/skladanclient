@@ -188,7 +188,7 @@ const primary = computed(() => {
     const p = pm.value
     if (p.pay) return { label: p.own ? "Я оплатил" : "Отметить оплату", icon: "wallet", run: () => open("pay") }
     if (p.confirm) return { label: confirmText(diff.value), icon: "check", kind: "success", run: () => open("confirm") }
-    if (p.waiting) return { label: diff.value > 0 ? "Ждём доплату" : "Ждём казначея", icon: "clock", kind: "secondary", disabled: true }
+    if (p.waiting) return { label: diff.value > 0 ? "Ждём доплату" : "Ждём подтверждения", icon: "clock", kind: "secondary", disabled: true }
     // Нехватка ещё не пришла: выдачу не показываем — заказ может оказаться заблокирован дефицитом. Место за ней держим, «ещё» не перескакивают.
     if (p.complete && shortWait.value) return { hidden: true }
     if (p.blocked) return { label: "Заблокировано", icon: "lock", kind: "secondary", disabled: true, title: "Дефицит по складу — завершение заблокировано до пополнения или правки заказов" }

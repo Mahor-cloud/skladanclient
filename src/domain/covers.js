@@ -307,9 +307,10 @@ export const kindCover = (kind, kindCovers = {}) => {
     return has(COVERS, t) ? t : has(KIND_COVER, kind) ? KIND_COVER[kind] : "box"
 }
 
-/** Тип обложки товара: по виду; «твёрдая» книга и «карточки» узнаются по названию. type — принудительно (предпросмотр). */
+/** Тип обложки товара: по виду; «твёрдая» книга и «карточки» узнаются по названию. type — принудительно (предпросмотр), p.cover — выбран у своей позиции «Моего склада». */
 export const coverType = (p, kindCovers = {}, type) => {
     if (type) return has(COVERS, type) ? type : "box"
+    if (has(COVERS, p.cover)) return p.cover
     const t = kindCover(p.category, kindCovers)
     if (t === "book" && /тверд/i.test(p.name)) return "hardbook"
     if (t === "box" && /карточ/i.test(p.name)) return "cards"

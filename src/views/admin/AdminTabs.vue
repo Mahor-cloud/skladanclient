@@ -29,5 +29,8 @@ onMounted(() => {
             ><UiIcon name="shield" :size="18" /><span>Роли и права</span><b v-if="roles">{{ roles.length }}</b></RouterLink
         >
         <RouterLink class="ptab" :class="{ 'is-on': cur === 'settings' }" :aria-current="cur === 'settings' ? 'page' : null" :to="{ name: 'admin-settings' }"><UiIcon name="sliders" :size="18" /><span>Настройки</span></RouterLink>
+        <RouterLink v-if="can('create_purchases') || can('edit_purchases')" class="ptab" :class="{ 'is-on': cur === 'litna' }" :aria-current="cur === 'litna' ? 'page' : null" :to="{ name: 'admin-litna' }"
+            ><UiIcon name="globe" :size="18" /><span>Аккаунт (РЗФ) lit-na.ru</span></RouterLink
+        >
     </nav>
 </template>

@@ -170,7 +170,7 @@ describe("заказы", () => {
         expect(orderTurn(order(), session())).toMatchObject({ mine: true, short: "Оплатите" })
         expect(orderTurn(order(), tre)).toMatchObject({ mine: false, short: "Ждёт оплаты", text: "Ждёт оплаты от группы «Штаб»" })
         expect(orderTurn(order({ isPaid: true }), tre).short).toBe("Подтвердите")
-        expect(orderTurn(order({ isPaid: true }), session()).short).toBe("Ждёт казначея")
+        expect(orderTurn(order({ isPaid: true }), session()).short).toBe("Ждёт подтверждения")
         expect(orderTurn(order({ isPaid: true, paymentEvents: [{ type: "surcharge-pending", amount: 100 }] }), session())).toMatchObject({ mine: true, short: "Доплата 100 ₽" })
         expect(orderTurn(order({ isPaid: true, paymentEvents: [{ type: "refund-pending", amount: -80 }] }), tre)).toMatchObject({ mine: true, short: "Возврат 80 ₽" })
         const ready = order({ isPaid: true, confirmedPaid: true })
@@ -252,8 +252,10 @@ describe("разделы", () => {
     const ids = (list) => list.map((n) => n.id)
     it("видны по правам; супер-админ не видит рабочих разделов", () => {
         expect(ids(visibleNav(s(["view_orders", "cabinet_access"])))).toEqual(["storage", "orders", "cabinet"])
-        expect(ids(visibleNav(s([], { isSuper: true })))).toEqual(["companies", "seeds", "metrics", "usage"])
+        expect(ids(visibleNav(s([], { isSuper: true })))).toEqual(["companies", "seeds", "metrics", "usage", "feedback"])
         expect(ids(visibleNav(s([], { isStaff: true })))).toEqual(["storage", "admin"])
+        // вкладка аккаунта lit-na.ru — по праву создавать или вести закупки
+        expect(ids(visibleNav(s(["edit_purchases"])))).toEqual(["storage", "admin"])
     })
     it("нижнее меню: авто по приоритету или набор роли, не больше четырёх и только доступное", () => {
         const all = ["view_orders", "cabinet_access", "view_purchases", "view_inventory", "view_statistics"]

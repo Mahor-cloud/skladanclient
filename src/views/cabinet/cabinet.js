@@ -3,9 +3,20 @@
  * Licensed under Apache 2.0
  */
 
+import { stockCover } from "@/domain/covers"
+
 // Строка «Моего склада» с сервера (GET /cabinet/merged): товар — по productId, своя позиция — по cabinetItemId.
 export const rowKey = (r) => r.productId || r.cabinetItemId
 export const CAB = Symbol("cabinet")
+
+/**
+ * Обложка своей позиции для UiCover — как предпросмотр в её форме (CoverEdit, вид «Прочее»); x — { cover, coverColor, photo }.
+ * null — обложку не выбирали и настоящей по названию нет: на её месте значок своей позиции.
+ */
+export function ownCover(id, name, x) {
+    const p = { _id: id, name, category: "Прочее", cover: x.cover, coverColor: x.coverColor, photo: x.photo }
+    return x.cover || x.coverColor || x.photo || stockCover(p) ? p : null
+}
 
 /** Итоги «Моего склада» по текущим (в том числе ещё не сохранённым) значениям: val(r, поле) → число, availOf(r) → доступно на складе. */
 export function cabStats(rows, val, availOf) {
@@ -77,7 +88,7 @@ export function sumBar(goal, have, ord, def) {
 
 /**
  * Склады по группам из GET /cabinet/all: группы по имени (А→Я), в каждой — позиции с целью или запасом, сначала больший дефицит
- * (цель − у них). → [{ user, items: [{ _id, x, name, own, def }] }]
+ * (цель − у них). → [{ user, items: [{ _id, x, name, own, def, cov }] }], cov — обложка (null — значок своей позиции)
  */
 export function cabinetGroups(all) {
     const by = new Map()
@@ -87,7 +98,14 @@ export function cabinetGroups(all) {
         const id = String(u._id)
         if (!by.has(id)) by.set(id, { user: { _id: id, name: u.name || u.login || "—", login: u.login || "" }, items: [] })
         if (!x.baseQty && !x.currentQty) continue
-        by.get(id).items.push({ _id: String(x._id), x, name: x.product ? x.product.name : x.customName, own: !x.product, def: Math.max(0, (x.baseQty || 0) - (x.currentQty || 0)) })
+        by.get(id).items.push({
+            _id: String(x._id),
+            x,
+            name: x.product ? x.product.name : x.customName,
+            own: !x.product,
+            def: Math.max(0, (x.baseQty || 0) - (x.currentQty || 0)),
+            cov: x.product || ownCover(String(x._id), x.customName, x)
+        })
     }
     const groups = [...by.values()].sort((a, b) => a.user.name.localeCompare(b.user.name, "ru"))
     for (const g of groups) g.items.sort((a, b) => b.def - a.def)

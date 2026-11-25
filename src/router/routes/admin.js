@@ -3,7 +3,7 @@
  * Licensed under Apache 2.0
  */
 
-// Админка: пользователи, роли, настройки. Карточки пользователя и роли — окна поверх своего списка (дочерние адреса).
+// Админка: пользователи, роли, настройки, аккаунт lit-na.ru. Карточки пользователя и роли — окна поверх своего списка (дочерние адреса).
 const meta = { nav: "admin" }
 export default [
     {
@@ -27,5 +27,6 @@ export default [
             { path: "/admin/role/:id", name: "admin-role", component: () => import("@/views/admin/RoleForm.vue"), props: true }
         ]
     },
-    { path: "admin/settings", name: "admin-settings", component: () => import("@/views/admin/AdminSettings.vue"), meta: { ...meta, title: "Настройки" } }
+    { path: "admin/settings", name: "admin-settings", component: () => import("@/views/admin/AdminSettings.vue"), meta: { ...meta, title: "Настройки" } },
+    { path: "admin/litna", name: "admin-litna", component: () => import("@/views/admin/AdminLitna.vue"), meta: { ...meta, title: "Аккаунт lit-na.ru" } }
 ]

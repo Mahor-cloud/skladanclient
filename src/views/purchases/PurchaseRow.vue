@@ -11,11 +11,15 @@ import { needOf, overBy, qtyIn, rcvIn } from "./purchase"
 
 // Строка позиции закупки. Своё количество читает из правок d и отдаёт изменения событием set(поле, id, n):
 // при вводе перерисовывается только эта строка, а не весь список. mode: draft | unpaid | receive | done.
+// site — остаток товара на lit-na.ru («649», «нет», «есть»; у непривязанного — пусто): число в бейдже своего цвета, чтобы не путать с нашим складом.
+// gap — цена строки (сайт) не равна цене каталога: «350 ₽ · в каталоге 420 ₽», предупреждающим цветом.
 const props = defineProps({
     line: { type: Object, required: true },
     mode: { type: String, required: true },
     d: { type: Object, required: true },
-    pm: { type: Object, required: true }
+    pm: { type: Object, required: true },
+    site: { type: String, default: "" },
+    gap: { type: String, default: "" }
 })
 const emit = defineEmits(["set", "clamped"])
 const el = ref(null)
@@ -40,12 +44,17 @@ async function addFirst() {
             ><RouterLink :to="{ name: 'product', params: { id: line._id } }" tabindex="-1" aria-hidden="true"><UiCover :product="line.p" size="sm" /></RouterLink
         ></span>
         <div class="trow__main">
-            <span class="trow__n">{{ line.p.name }}</span>
+            <span class="trow__n"
+                >{{ line.p.name
+                }}<template v-if="site">
+                    <span class="tag tag--teal" style="margin-left: var(--sp-3)" :title="`На lit-na.ru: ${site}`" :aria-label="`На lit-na.ru: ${site}`">{{ site }}</span></template
+                ></span
+            >
             <span class="trow__m"
                 >{{ line.p.category }}<span class="mob"> · склад {{ physical(line.p) }} · доступно {{ available(line.p) }} · цель {{ t || "—" }}</span></span
             >
             <span v-if="over" class="trow__warn" :class="{ 'is-ok': pm.exceed }"
-                ><UiIcon :name="pm.exceed ? 'info' : 'alert'" :size="16" />{{ pm.exceed ? `Сверх цели на ${over} — вы можете подтвердить` : `Больше цели на ${over} — нужно подтверждение председателя` }}</span
+                ><UiIcon :name="pm.exceed ? 'info' : 'alert'" :size="16" />{{ pm.exceed ? `Сверх цели на ${over} — вы можете подтвердить` : `Больше цели на ${over} — нет права подтвердить` }}</span
             >
             <span v-else-if="need && !q" class="trow__hint"><UiIcon name="bolt" :size="14" />до цели не хватает {{ need }}</span>
         </div>
@@ -69,9 +78,15 @@ async function addFirst() {
         <span class="trow__cov"><UiCover :product="line.p" size="sm" /></span>
         <div class="trow__main">
             <span class="trow__n"
-                >{{ line.p.name }}<template v-if="line.added"> <span class="tag tag--primary">новая</span></template></span
+                >{{ line.p.name }}<template v-if="line.added"> <span class="tag tag--primary">новая</span></template
+                ><template v-if="site">
+                    <span class="tag tag--teal" style="margin-left: var(--sp-3)" :title="`На lit-na.ru: ${site}`" :aria-label="`На lit-na.ru: ${site}`">{{ site }}</span></template
+                ></span
             >
             <span class="trow__m">{{ line.p.category }} · {{ money(line.p.price) }}/шт.</span>
+            <span v-if="gap" class="trow__m"
+                ><span class="tag tag--warning">{{ gap }}</span></span
+            >
         </div>
         <span class="trow__c">{{ money(line.p.price) }}</span>
         <div class="trow__ctl">
@@ -91,6 +106,9 @@ async function addFirst() {
                 ><span class="mob"
                     >заказано {{ line.q0 }}<template v-if="line.conf"> · принято ранее {{ line.conf }}</template></span
                 ><span class="desk">{{ line.p.category }}</span></span
+            >
+            <span v-if="gap" class="trow__m"
+                ><span class="tag tag--warning">{{ gap }}</span></span
             >
         </div>
         <span class="trow__c">{{ num(line.q0) }}</span>
@@ -113,6 +131,9 @@ async function addFirst() {
         <div class="trow__main">
             <span class="trow__n">{{ line.p.name }}</span>
             <span class="trow__m">{{ line.p.category }} · {{ num(line.conf) }} из {{ pcs(line.q0) }} · {{ money(line.p.price) }}/шт.</span>
+            <span v-if="gap" class="trow__m"
+                ><span class="tag tag--warning">{{ gap }}</span></span
+            >
         </div>
         <span class="trow__c">{{ num(line.q0) }}</span>
         <span class="trow__c"

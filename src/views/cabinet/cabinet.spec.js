@@ -3,8 +3,9 @@
  * Licensed under Apache 2.0
  */
 
+import { coverType } from "@/domain/covers"
 import { describe, expect, it } from "vitest"
-import { autofill, cabinetGroups, cabStats, rowKey, sumBar } from "./cabinet"
+import { autofill, cabinetGroups, cabStats, ownCover, rowKey, sumBar } from "./cabinet"
 
 const row = (o) => ({ productId: null, cabinetItemId: null, price: 0, baseQty: 0, currentQty: 0, inOrderQty: 0, isCustom: false, ...o })
 
@@ -84,5 +85,42 @@ describe("cabinetGroups", () => {
             ["Буклет", 3],
             ["Книга", 0]
         ])
+    })
+
+    it("обложка: у товара — сам товар, у своей — выбранная, без выбора — значок (null)", () => {
+        const book = { name: "Книга", price: 100 }
+        const g = cabinetGroups([
+            { _id: "c1", user: { _id: "1", name: "А" }, product: book, baseQty: 1 },
+            { _id: "c2", user: { _id: "1", name: "А" }, product: null, customName: "Фото", baseQty: 3, photo: "ab".repeat(16) },
+            { _id: "c3", user: { _id: "1", name: "А" }, product: null, customName: "Без", baseQty: 2 }
+        ])
+        const cov = Object.fromEntries(g[0].items.map((i) => [i._id, i.cov]))
+        expect(cov.c1).toBe(book)
+        expect(cov.c2).toMatchObject({ _id: "c2", name: "Фото", photo: "ab".repeat(16) })
+        expect(cov.c3).toBeNull()
+    })
+})
+
+describe("ownCover", () => {
+    it("как предпросмотр формы: вид «Прочее», цвет и фото позиции", () => {
+        expect(ownCover("c1", "Своё", { coverColor: "#0147B9" })).toEqual({ _id: "c1", name: "Своё", category: "Прочее", coverColor: "#0147B9", photo: undefined })
+        expect(ownCover("c1", "Своё", { photo: "f".repeat(32) })).toMatchObject({ photo: "f".repeat(32) })
+    })
+
+    it("без цвета и фото — null (значок), если нет настоящей обложки по названию", () => {
+        expect(ownCover("c1", "Домашние записи", {})).toBeNull()
+        expect(ownCover("c1", "Домашние записи", { cover: null, coverColor: null, photo: null })).toBeNull()
+    })
+
+    it("выбранный тип рисует этим типом; неизвестный — как без выбора, а выбор в предпросмотре (type) главнее", () => {
+        const p = ownCover("c1", "Домашние записи", { cover: "medal" })
+        expect(p).toMatchObject({ cover: "medal" })
+        expect(coverType(p)).toBe("medal")
+        expect(coverType({ ...p, cover: "hardbook", name: "Блокнот" })).toBe("hardbook")
+        expect(coverType({ ...p, cover: "constructor" })).toBe("box") // вид «Прочее»
+        expect(coverType({ ...p, cover: "nope" }, { Прочее: "book" })).toBe("book")
+        expect(coverType(p, {}, "keytag")).toBe("keytag")
+        // выбранная «Книга» остаётся книгой, даже если в названии «твёрдая»
+        expect(coverType({ ...p, cover: "book", name: "Твёрдая папка" })).toBe("book")
     })
 })

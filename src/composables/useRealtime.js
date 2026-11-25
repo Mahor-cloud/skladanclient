@@ -19,6 +19,11 @@ const KEY_MAP = [
         prefix: "purchase",
         keys: ["purchases", "orderShortages", "purchaseOrder", "products", "product", "products-for-statistics", "statistics"]
     },
+    // События lit-na.ru (заказ, оплата, отмена, привязка) меняют закупки и товары — как события закупок.
+    {
+        prefix: "litna",
+        keys: ["purchases", "orderShortages", "purchaseOrder", "products", "product", "products-for-statistics", "statistics"]
+    },
     {
         prefix: "inventory",
         keys: ["inventory", "orderShortages", "inventorizations", "inventorization", "products", "product", "products-for-statistics", "statistics"]

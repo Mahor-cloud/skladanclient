@@ -21,6 +21,7 @@ import AdminTabs from "./AdminTabs.vue"
 const qc = useQueryClient()
 const { user, can, plain } = useSession()
 const allowed = computed(() => can("create_purchases") || can("edit_purchases"))
+const DOTS = "••••••••"
 const { data: acc, isPending, isError, refetch } = useLitnaAccount()
 const { data: products } = useProducts()
 const HALF_HOUR = 1000 * 60 * 30
@@ -190,8 +191,38 @@ async function choose(siteId) {
     <UiPage title="Админка" :sub="user?.companyName || ''" :cls="unsaved ? 'has-abar' : ''">
         <AdminTabs cur="litna" />
 
-        <div v-if="!allowed" class="card">
-            <UiEmpty art="error" title="Нет доступа"><UiBtn label="На главную" icon="home" :to="homePath(plain)" /></UiEmpty>
+        <!-- Без права создавать или править закупки данные аккаунта не показываются и с сервера не приходят: на их месте точки. -->
+        <div v-if="!allowed" class="sets">
+            <div style="display: grid; gap: inherit; grid-template-rows: auto 1fr">
+                <section class="card sset sset--masked is-ro">
+                    <header class="sset__h">
+                        <span class="sset__i"><UiIcon name="lock" :size="22" /></span>
+                        <div><h2>Аккаунт</h2></div>
+                    </header>
+                    <UiField :model-value="DOTS" label="Email" readonly />
+                </section>
+                <section class="card sset sset--masked is-ro">
+                    <header class="sset__h">
+                        <span class="sset__i"><UiIcon name="user" :size="22" /></span>
+                        <div><h2>Получатель</h2></div>
+                    </header>
+                    <div class="pform__row pform__row--stack">
+                        <UiField :model-value="DOTS" label="Имя" readonly />
+                        <UiField :model-value="DOTS" label="Фамилия" readonly />
+                    </div>
+                    <div class="pform__row pform__row--stack">
+                        <UiField :model-value="DOTS" label="Телефон" readonly />
+                        <UiField :model-value="DOTS" label="Email" readonly />
+                    </div>
+                </section>
+            </div>
+            <section class="card sset sset--masked is-ro">
+                <header class="sset__h">
+                    <span class="sset__i"><UiIcon name="truck" :size="22" /></span>
+                    <div><h2>Доставка</h2></div>
+                </header>
+                <UiField :model-value="DOTS" label="Адрес" readonly />
+            </section>
         </div>
         <div v-else-if="isError && !acc" class="card card--pad"><UiError title="Не удалось загрузить «Аккаунт lit-na.ru»" @retry="refetch()" /></div>
         <template v-else-if="isPending">

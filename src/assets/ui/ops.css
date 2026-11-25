@@ -935,3 +935,5 @@ input[type="file"].sr { font-size: 16px; }
 .payfr__wait.is-off { opacity: 0; visibility: hidden; }
 .payfr__wait .lgo { width: 96px; height: 96px; }
 .payfr__wait span { padding: 0 var(--sp-6); text-align: center; }
+/* Аккаунт lit-na.ru без права его настраивать: вместо данных — серые точки */
+.sset--masked input { color: var(--text-3); font-family: sans-serif; font-size: 22px; letter-spacing: 3px; }

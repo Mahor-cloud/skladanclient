@@ -459,6 +459,11 @@ label.btn:has(input:focus-visible) { box-shadow: var(--focus); }
 .ohero__top { justify-content: flex-start; gap: var(--sp-5); }
 .ohero__sum { font-size: var(--fs-18); font-weight: var(--fw-heavy); }
 .work__side .ohero:has(.stamp) .ohero__top, .sc-stamp1 .ohero__top { min-height: 54px; align-items: flex-start; padding-right: 148px; }
+/* Телефон: длинный статус («Ожидание получения») рядом со штампом карточку не распирает — колонка не шире карточки, статус компактнее; на 360 px компактнее и штамп */
+.work__side .ohero { grid-template-columns: minmax(0, 1fr); }
+@media (max-width: 899px) { .work__side .ohero:has(.stamp) .ohero__top .status { height: 28px; font-size: var(--fs-13); padding: 0 var(--sp-4) 0 var(--sp-3); } }
+:root[data-scale="large"] .work__side .ohero:has(.stamp) .ohero__top .status { height: 28px; font-size: var(--fs-13); padding: 0 var(--sp-4) 0 var(--sp-3); }
+@media (max-width: 379px) { .work__side .ohero > .stamp { padding: 5px 7px 4px; right: 10px; } .work__side .ohero > .stamp b { letter-spacing: .08em; } .work__side .ohero > .stamp small { letter-spacing: .03em; } }
 /* Штампы заказа копятся, как в паспорте. Пара «оплачено + оплата подтверждена» — по центру карточки, с нахлёстом и своим наклоном;
    «выдан» — в строке статуса справа от цены. Итого одна дополнительная строка. */
 .stamps { display: flex; align-items: center; justify-content: center; min-height: 62px; padding: var(--sp-2) var(--sp-2) var(--sp-3); margin: calc(var(--sp-2) * -1) 0; }

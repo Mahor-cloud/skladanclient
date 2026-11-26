@@ -305,7 +305,7 @@ async function choose(siteId) {
                     <UiField
                         v-if="d.delivery.kind"
                         :model-value="d.address"
-                        label="Адрес"
+                        :label="pvz ? 'Адрес (при бесплатной доставке — в комментарий к заказу на сайте)' : 'Адрес'"
                         name="litna-address"
                         :rows="pvz ? 2 : 0"
                         :hint="pvz ? '' : 'Пример: 410019, Россия, Саратовская область, Саратов, ул. им. Маяковского, д. 1'"

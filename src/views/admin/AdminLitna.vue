@@ -32,12 +32,9 @@ const d = reactive({ ...Object.fromEntries(ACCOUNT_FIELDS.map((k) => [k, ""])), 
 const body = () => accountBody(d)
 const saved = ref(JSON.stringify(body()))
 const dirty = computed(() => JSON.stringify(body()) !== saved.value)
-// Адрес выбранного пункта: совпал с ним — адрес не «вписан руками». У уже ручного адреса неизвестен до нового выбора пункта.
-let pointAddress = ""
 function fill(a) {
     for (const k of ACCOUNT_FIELDS) d[k] = a[k] || ""
     d.delivery = { kind: "", ...a.delivery }
-    pointAddress = a.delivery?.manual ? "" : d.address
     saved.value = JSON.stringify(body())
 }
 watch(acc, (a) => a && !dirty.value && fill(a), { immediate: true })
@@ -104,8 +101,7 @@ async function logout() {
 }
 
 /* ---------- Пункт выдачи: сначала город (запрос — через 1,2 с после последней буквы или по Enter), потом поиск по адресу среди загруженных.
-   В delivery.title — name пункта (его ждёт сайт); адрес аккаунта = адрес пункта, пока его не поправили руками (delivery.manual):
-   бесплатную доставку магазин везёт не в пункт, а по адресу ---------- */
+   В delivery.title — name пункта (его ждёт сайт), в delivery.address — его адрес для показа. Адрес получателя от пункта не зависит ---------- */
 const pvz = computed(() => !!KIND[d.delivery.kind]?.pvz)
 const pts = reactive({ open: false, q: "", cityQ: "", city: "" })
 // Окно закрыто — фоном грузятся пункты сохранённого города: к нажатию «Изменить» список уже готов (тот же ключ и кэш).
@@ -153,25 +149,12 @@ function cityGo() {
     clearTimeout(cityTimer)
     pts.city = pts.cityQ.trim()
 }
-// Вписанный руками адрес выбор пункта не затирает
 function pickPoint(p, close) {
-    const keep = !!d.delivery.manual && !!d.address.trim()
-    d.delivery = { kind: d.delivery.kind, code: p.code, title: p.name, city: p.city || pts.city, ...(keep && { manual: true }) }
-    if (!keep) d.address = p.address
-    pointAddress = p.address
+    d.delivery = { kind: d.delivery.kind, code: p.code, title: p.name, city: p.city || pts.city, address: p.address }
     close()
 }
-function typeAddress(v) {
-    d.address = v
-    if (!pvz.value) return
-    const dl = { ...d.delivery, manual: !!v.trim() && v.trim() !== pointAddress.trim() }
-    if (!dl.manual) delete dl.manual
-    d.delivery = dl
-}
 function setKind(kind) {
-    const next = withKind(d.delivery, d.address, kind)
-    d.delivery = next.delivery
-    d.address = next.address
+    d.delivery = withKind(d.delivery, kind)
 }
 
 /* ---------- Привязка товаров: litnaId товаров и подсказки сайта. Каждая привязка сохраняется сразу из окна выбора;
@@ -284,6 +267,12 @@ async function choose(siteId) {
                             <UiField v-model="d.phone" label="Телефон" type="tel" name="litna-phone" inputmode="tel" autocomplete="off" />
                             <UiField v-model="d.email" label="Email" type="email" name="litna-email" inputmode="email" autocomplete="off" />
                         </div>
+                        <UiField v-model="d.street" label="Адрес" name="litna-street" placeholder="Номер дома и название улицы" autocomplete="off" />
+                        <div class="pform__row pform__row--stack">
+                            <UiField v-model="d.city" label="Населённый пункт" name="litna-city" autocomplete="off" />
+                            <UiField v-model="d.state" label="Область / район" name="litna-state" autocomplete="off" />
+                        </div>
+                        <UiField v-model="d.postcode" label="Почтовый индекс" name="litna-postcode" inputmode="numeric" autocomplete="off" />
                     </section>
                 </div>
                 <section class="card sset">
@@ -299,19 +288,10 @@ async function choose(siteId) {
                         >
                     </div>
                     <div v-if="pvz" style="display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: var(--sp-4); align-items: end">
-                        <UiField :model-value="d.delivery.title || ''" label="Пункт выдачи" name="litna-point" :rows="2" readonly />
+                        <UiField :model-value="d.delivery.address || d.delivery.title || ''" label="Пункт выдачи" name="litna-point" :rows="2" readonly />
                         <UiBtn :label="d.delivery.code ? 'Изменить' : 'Выбрать'" kind="secondary" size="lg" data-track="Выбрать пункт выдачи" @click="openPoints" />
                     </div>
-                    <UiField
-                        v-if="d.delivery.kind"
-                        :model-value="d.address"
-                        :label="pvz ? 'Адрес (при бесплатной доставке — в комментарий к заказу на сайте)' : 'Адрес'"
-                        name="litna-address"
-                        :rows="pvz ? 2 : 0"
-                        :hint="pvz ? '' : 'Пример: 410019, Россия, Саратовская область, Саратов, ул. им. Маяковского, д. 1'"
-                        autocomplete="off"
-                        @update:model-value="typeAddress"
-                    />
+                    <UiField v-model="d.comment" label="Комментарий (адрес допишется автоматически)" name="litna-comment" :rows="2" maxlength="500" autocomplete="off" />
                 </section>
             </div>
             <div class="desk-only" style="margin-top: var(--sp-6); text-align: right">

@@ -109,21 +109,15 @@ describe("lit-na.ru", () => {
         ])
     })
 
-    it("способ доставки: пункт ↔ до двери и смена службы у пункта сбрасывают пункт и адрес; до двери ↔ до двери адрес оставляет", () => {
-        const dl = { kind: "cdek_pvz", code: "SRT1", title: "СДЭК Саратов 1", city: "Саратов" }
-        const addr = "Саратов, ул. Ленина, 5"
-        expect(withKind(dl, addr, "cdek_pvz")).toEqual({ delivery: dl, address: addr })
-        expect(withKind(dl, addr, "cdek_door")).toEqual({ delivery: { kind: "cdek_door", city: "Саратов" }, address: "" })
-        expect(withKind(dl, addr, "yandex_pvz")).toEqual({ delivery: { kind: "yandex_pvz", city: "Саратов" }, address: "" })
-        expect(withKind({ kind: "cdek_door" }, "ул. Московская, 1", "yandex_door")).toEqual({ delivery: { kind: "yandex_door", city: undefined }, address: "ул. Московская, 1" })
-        expect(withKind({ kind: "" }, "ул. Московская, 1", "cdek_pvz").address).toBe("")
+    it("способ доставки: смена способа сбрасывает пункт и оставляет его город; тот же способ ничего не меняет", () => {
+        const dl = { kind: "cdek_pvz", code: "SRT1", title: "СДЭК Саратов 1", city: "Саратов", address: "Саратов, ул. Первая, 1" }
+        expect(withKind(dl, "cdek_pvz")).toBe(dl)
+        expect(withKind(dl, "cdek_door")).toEqual({ kind: "cdek_door", city: "Саратов" })
+        expect(withKind(dl, "yandex_pvz")).toEqual({ kind: "yandex_pvz", city: "Саратов" })
+        expect(withKind({ kind: "" }, "cdek_pvz")).toEqual({ kind: "cdek_pvz", city: undefined })
         expect(deliveryBody(dl)).toEqual(dl)
-        expect(deliveryBody({ kind: "cdek_door", city: "Саратов" })).toEqual({ kind: "cdek_door" })
-        // адрес при пункте вписан руками: признак уходит только у пункта выдачи
-        expect(deliveryBody({ ...dl, manual: true })).toEqual({ ...dl, manual: true })
-        expect(deliveryBody({ ...dl, manual: false })).toEqual(dl)
-        expect(deliveryBody({ kind: "cdek_door", manual: true })).toEqual({ kind: "cdek_door" })
-        expect(deliveryRows({ free: true, delivery: { kind: "cdek_pvz", point: "Саратов, ул. Ручная, 7", manual: true } })[1]).toEqual(["Адрес", "Саратов, ул. Ручная, 7"])
+        expect(deliveryBody({ ...dl, manual: true })).toEqual(dl)
+        expect(deliveryBody({ kind: "cdek_door", city: "Саратов", address: "x" })).toEqual({ kind: "cdek_door" })
         expect(deliveryRows({ free: true, delivery: { kind: "cdek_pvz", point: "SAR6" } })[1]).toEqual(["Пункт", "SAR6"])
     })
 
@@ -232,12 +226,13 @@ describe("lit-na.ru", () => {
         expect(litnaState({ isPaid: true, litna: { status: "cancelled" } })).toBe("Оплачен")
     })
 
-    it("аккаунт: только получатель, адрес и доставка — без входа, области, города и индекса; без пустой доставки", () => {
-        const d = { login: " rzf ", address: "Саратов, ул. Ленина, 5", state: "x", city: "Саратов", postcode: "410000", configured: true, hasPassword: true, password: "x", delivery: { kind: "" } }
+    it("аккаунт: получатель, адрес полями сайта, комментарий и доставка — без входа и адреса одной строкой; без пустой доставки", () => {
+        const d = { login: " rzf ", address: "Саратов, ул. Ленина, 5", street: " ул. Ленина, 5 ", state: "x", city: "Саратов", postcode: "410000", configured: true, hasPassword: true, password: "x", delivery: { kind: "" } }
         const body = accountBody(d)
-        expect(Object.keys(body)).toEqual(["firstName", "lastName", "phone", "email", "address"])
-        // у пункта выдачи адрес — адрес пункта, уходит как есть вместе с пунктом и его городом
-        expect(accountBody({ ...d, delivery: { kind: "cdek_pvz", code: "X", title: "Y", city: "Саратов" } })).toMatchObject({ address: "Саратов, ул. Ленина, 5", delivery: { kind: "cdek_pvz", code: "X", title: "Y", city: "Саратов" } })
+        expect(Object.keys(body)).toEqual(["firstName", "lastName", "phone", "email", "street", "city", "state", "postcode", "comment"])
+        expect(body).toMatchObject({ street: "ул. Ленина, 5", city: "Саратов", state: "x", postcode: "410000" })
+        // адрес получателя уходит как есть при любом способе; у пункта выдачи — ещё пункт и его город
+        expect(accountBody({ ...d, delivery: { kind: "cdek_pvz", code: "X", title: "Y", city: "Энгельс" } })).toMatchObject({ city: "Саратов", delivery: { kind: "cdek_pvz", code: "X", title: "Y", city: "Энгельс" } })
         expect(accountBody({ ...d, delivery: { kind: "cdek_door", code: "X", title: "Y" } }).delivery).toEqual({ kind: "cdek_door" })
     })
 

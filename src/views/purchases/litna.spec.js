@@ -119,6 +119,12 @@ describe("lit-na.ru", () => {
         expect(withKind({ kind: "" }, "ул. Московская, 1", "cdek_pvz").address).toBe("")
         expect(deliveryBody(dl)).toEqual(dl)
         expect(deliveryBody({ kind: "cdek_door", city: "Саратов" })).toEqual({ kind: "cdek_door" })
+        // адрес при пункте вписан руками: признак уходит только у пункта выдачи
+        expect(deliveryBody({ ...dl, manual: true })).toEqual({ ...dl, manual: true })
+        expect(deliveryBody({ ...dl, manual: false })).toEqual(dl)
+        expect(deliveryBody({ kind: "cdek_door", manual: true })).toEqual({ kind: "cdek_door" })
+        expect(deliveryRows({ free: true, delivery: { kind: "cdek_pvz", point: "Саратов, ул. Ручная, 7", manual: true } })[1]).toEqual(["Адрес", "Саратов, ул. Ручная, 7"])
+        expect(deliveryRows({ free: true, delivery: { kind: "cdek_pvz", point: "SAR6" } })[1]).toEqual(["Пункт", "SAR6"])
     })
 
     it("наличие на сайте", () => {

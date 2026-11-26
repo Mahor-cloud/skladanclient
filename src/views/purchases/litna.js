@@ -14,7 +14,7 @@ export const DELIVERY = [
 ]
 export const KIND = Object.fromEntries(DELIVERY.map((x) => [x.value, x]))
 /**
- * Смена способа: { delivery, address }. У пункта выдачи адрес — сам пункт, поэтому переход «пункт ↔ до двери» и смена службы
+ * Смена способа: { delivery, address }. У пункта выдачи адрес — сам пункт (пока не поправлен руками), поэтому переход «пункт ↔ до двери» и смена службы
  * у пункта сбрасывают пункт и адрес; «до двери» ↔ «до двери» оставляет введённый адрес. Город пункта остаётся для окна выбора.
  */
 export function withKind(dl, address, kind) {
@@ -22,8 +22,8 @@ export function withKind(dl, address, kind) {
     const keep = !KIND[dl.kind]?.pvz && !KIND[kind]?.pvz
     return { delivery: { kind, city: dl.city }, address: keep ? address : "" }
 }
-/** Доставка к сохранению: пункт и его город — только у способов «пункт выдачи». */
-export const deliveryBody = (dl) => (KIND[dl.kind]?.pvz ? { kind: dl.kind, code: dl.code, title: dl.title, city: dl.city } : { kind: dl.kind })
+/** Доставка к сохранению: пункт, его город и признак «адрес вписан руками» — только у способов «пункт выдачи». */
+export const deliveryBody = (dl) => (KIND[dl.kind]?.pvz ? { kind: dl.kind, code: dl.code, title: dl.title, city: dl.city, ...(dl.manual && { manual: true }) } : { kind: dl.kind })
 export const ACCOUNT_FIELDS = ["firstName", "lastName", "phone", "email", "address"]
 /** Тело PUT /litna/account: получатель, адрес и доставка (вход — отдельно, лишние поля сервер отклоняет); способ не выбран — доставки в теле нет. */
 export function accountBody(d) {
@@ -85,8 +85,9 @@ export function catalogSummary(c) {
 export const orderFailure = (status, data) => (status === 409 && data?.lines ? "again" : data?.code === "LOGIN_FAILED" ? "login" : "fail")
 /** Строки расчёта без привязки — для окна «привязать сейчас»: { product, name, quantity, siteId: null }. */
 export const unlinkedRows = (q) => (q.lines || []).filter((l) => l.problem === "unlinked").map((l) => ({ product: l.product, name: l.name, quantity: l.quantity, siteId: null }))
-/** Доставка расчёта или заказа: способ, пункт, стоимость. */
-export const deliveryRows = (x) => [["Способ", x.delivery?.title || KIND[x.delivery?.kind]?.label || "—"], x.delivery?.point && ["Пункт", x.delivery.point], ["Доставка", x.free || !x.shipping ? "бесплатно" : money(x.shipping)]].filter(Boolean)
+/** Доставка расчёта или заказа: способ, пункт (или вписанный руками адрес, если посылка идёт по нему), стоимость. */
+export const deliveryRows = (x) =>
+    [["Способ", x.delivery?.title || KIND[x.delivery?.kind]?.label || "—"], x.delivery?.point && [x.delivery.manual ? "Адрес" : "Пункт", x.delivery.point], ["Доставка", x.free || !x.shipping ? "бесплатно" : money(x.shipping)]].filter(Boolean)
 /** Подтверждение заказа: товары, доставка, итог. */
 export const quoteRows = (q) => [["Товары", money(q.goods)], ...deliveryRows(q), ["Итого", money(q.total)]]
 /** Цены равны с точностью до копейки: 350 и 350.00 — одно и то же. */

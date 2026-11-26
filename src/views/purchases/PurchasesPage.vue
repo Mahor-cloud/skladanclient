@@ -15,7 +15,7 @@ import { computed, ref, watch } from "vue"
 import { useRouter } from "vue-router"
 import AskSheet from "./AskSheet.vue"
 import { litnaCancelled, litnaShipped, litnaTag, origin } from "./litna"
-import { listState as ls, PST, pst, puFixed, puGot, puItems, puPayTotal, puPerm, puPieces, puTotal, puTurn, STEP, sum } from "./purchase"
+import { listState as ls, PST, pst, puFixed, puGot, puItems, puPayTotal, puPerm, puPieces, puTotal, puTurn, sum } from "./purchase"
 
 // Список закупок: сводка, фильтры по статусу, поиск по номеру и товару; закупка открывается отдельной страницей.
 const router = useRouter()
@@ -135,7 +135,7 @@ async function create(yes) {
         <p class="loading-note" role="status"><span class="spin"></span>Загружаем закупки…</p>
         <div class="card ptable">
             <div v-for="i in 5" :key="i" class="purow purow--sk">
-                <UiSk w="40%" :h="18" /><UiSk w="96px" :h="26" :r="99" /><UiSk :h="6" :r="99" /><UiSk w="70%" :h="12" />
+                <UiSk w="40%" :h="18" /><UiSk w="96px" :h="26" :r="99" /><UiSk w="70%" :h="12" />
                 <span style="display: flex; justify-content: space-between"><UiSk w="120px" :h="32" :r="8" /><UiSk w="80px" :h="20" /></span>
             </div>
         </div>
@@ -212,16 +212,11 @@ async function create(yes) {
                             ></span>
                         </span>
                         <span class="purow__d">{{ short(x.pu.purchaseDate) }}</span>
-                        <span class="purow__track">
-                            <div class="mtrack" :class="{ 'mtrack--done': x.st === 'done' }" :aria-label="`Этап ${STEP[x.st] + 1} из 4`">
-                                <i v-for="i in 4" :key="i" :class="i - 1 < STEP[x.st] || x.st === 'done' ? 'is-done' : i - 1 === STEP[x.st] ? 'is-cur' : ''"></i>
-                            </div>
-                        </span>
                         <UiIcon name="right" :size="20" class="purow__chev" />
                     </RouterLink>
                 </template>
                 <template #sk>
-                    <div v-for="i in 2" :key="i" class="purow purow--sk"><UiSk w="40%" :h="18" /><UiSk w="96px" :h="26" :r="99" /><UiSk :h="6" :r="99" /><UiSk w="70%" :h="12" /></div>
+                    <div v-for="i in 2" :key="i" class="purow purow--sk"><UiSk w="40%" :h="18" /><UiSk w="96px" :h="26" :r="99" /><UiSk w="70%" :h="12" /></div>
                 </template>
             </UiLazy>
         </div>

@@ -21,10 +21,10 @@
 .linkbtn i { font-style: italic; }
 .linkbtn:hover i { color: var(--primary-text); }
 .status--partial { background: var(--st-partial-bg); color: var(--st-partial); }
-.mtrack--done i { background: var(--success) !important; }
 /* Полоска шагов над кнопкой, пока сервер работает на lit-na.ru: число сегментов — по операции */
 .mtrack--steps { grid-template-columns: repeat(var(--n, 4), 1fr); gap: 3px; padding: 0 var(--sp-2); }
 .mtrack--steps i { height: 4px; transition: background var(--d-2); }
+.mtrack--steps i.is-cur { background-size: 200% 100%; animation: prog 1.6s linear infinite; }
 @media (prefers-reduced-motion: reduce) { .mtrack--steps i.is-cur { animation: none; } }
 .stepbtn { display: grid; gap: var(--sp-3); min-width: 0; }
 .abar .stepbtn { flex: 1 1 auto; max-width: 260px; }
@@ -173,7 +173,7 @@ a.trow:hover .trow__n { color: var(--primary-text); }
 .ptable__h { display: none; }
 .purow {
   position: relative; display: grid; grid-template-columns: minmax(0, 1fr) auto;
-  grid-template-areas: "no st" "track track" "turn turn" "items sum" "got got";
+  grid-template-areas: "no st" "turn turn" "items sum" "got got";
   gap: var(--sp-4) var(--sp-5); align-items: center; padding: var(--sp-6); border-bottom: 1px solid var(--line); background: var(--surface);
   transition: background-color var(--d-1);
 }
@@ -183,7 +183,6 @@ a.trow:hover .trow__n { color: var(--primary-text); }
 .purow__no b { font-size: var(--fs-18); font-weight: var(--fw-heavy); }
 .purow__no small { font-size: var(--fs-13); color: var(--text-2); font-weight: var(--fw-medium); }
 .purow__st { grid-area: st; justify-self: end; display: grid; justify-items: end; gap: var(--sp-2); }
-.purow__track { grid-area: track; }
 .purow__turn { grid-area: turn; }
 .purow__items { grid-area: items; display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-2) var(--sp-4); min-width: 0; }
 .purow__items small, .purow__sum small { font-size: var(--fs-13); color: var(--text-2); font-weight: var(--fw-bold); white-space: nowrap; }
@@ -195,11 +194,11 @@ a.trow:hover .trow__n { color: var(--primary-text); }
 .purow--sk { display: grid; grid-template-areas: none; grid-template-columns: 1fr; gap: var(--sp-4); }
 /* Узкий телефон и крупный текст на телефоне: статус — своей строкой под заголовком, иначе заголовок ломается по слову */
 @media (max-width: 379px) {
-  .purow { grid-template-areas: "no no" "st st" "track track" "turn turn" "items sum" "got got"; }
+  .purow { grid-template-areas: "no no" "st st" "turn turn" "items sum" "got got"; }
   .purow__st { justify-self: start; display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-2) var(--sp-3); }
 }
 @media (max-width: 899px) {
-  :root[data-scale="large"] .purow { grid-template-areas: "no no" "st st" "track track" "turn turn" "items sum" "got got"; }
+  :root[data-scale="large"] .purow { grid-template-areas: "no no" "st st" "turn turn" "items sum" "got got"; }
   :root[data-scale="large"] .purow__st { justify-self: start; display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-2) var(--sp-3); }
 }
 .gbar { display: grid; gap: var(--sp-2); width: 100%; }
@@ -212,7 +211,7 @@ a.trow:hover .trow__n { color: var(--primary-text); }
   .ptable__h span:nth-child(4), .ptable__h span:nth-child(8) { text-align: right; }
   .purow { grid-template-columns: var(--pcols); grid-template-areas: none; gap: var(--sp-5); padding: var(--sp-4) var(--sp-6); min-height: 76px; }
   .purow > * { grid-area: auto !important; }
-  .purow__no small, .purow__track { display: none; }
+  .purow__no small { display: none; }
   .purow__no b { font-size: var(--fs-16); }
   .purow__st { justify-self: start; justify-items: start; }
   .purow__who { display: flex; align-items: center; gap: var(--sp-4); min-width: 0; }

@@ -504,7 +504,8 @@ input[type="search"]::-webkit-search-cancel-button { display: none; }
 .mtrack { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; }
 .mtrack i { height: 6px; border-radius: var(--r-pill); background: var(--surface-3); }
 .mtrack i.is-done { background: var(--primary); }
-.mtrack i.is-cur { background: linear-gradient(90deg, var(--primary) 0 50%, var(--primary-soft-2) 50%); background-size: 200% 100%; animation: prog 1.6s linear infinite; }
+/* текущий этап стоит на месте: бежит только полоска шагов, пока сервер и правда работает (.mtrack--steps) */
+.mtrack i.is-cur { background: linear-gradient(90deg, var(--primary) 0 50%, var(--primary-soft-2) 50%); }
 @keyframes prog { from { background-position: 100% 0; } to { background-position: 0 0; } }
 .status--done ~ .mtrack i, .ocard[data-st="done"] .mtrack i { background: var(--success); }
 
